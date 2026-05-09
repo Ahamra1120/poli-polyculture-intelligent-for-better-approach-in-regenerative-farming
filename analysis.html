@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analisis - AgriDash</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <i class="ph ph-plant"></i>
+                <span>AgriDash</span>
+            </div>
+            
+            <div class="device-selector">
+                <p class="selector-label">Perangkat Aktif</p>
+                <div class="custom-select">
+                    <select id="deviceSelect" disabled>
+                        <option value="greenhouse-1">Greenhouse 1 (Sayuran)</option>
+                    </select>
+                </div>
+            </div>
+
+            <nav class="nav-menu">
+                <a href="index.html" class="nav-item">
+                    <i class="ph ph-squares-four"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="analysis.html" class="nav-item active">
+                    <i class="ph ph-chart-line-up"></i>
+                    <span>Analisis</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="ph ph-bell"></i>
+                    <span>Notifikasi</span>
+                </a>
+                <a href="settings.html" class="nav-item">
+                    <i class="ph ph-gear"></i>
+                    <span>Pengaturan</span>
+                </a>
+                <a href="login.html" class="nav-item" style="margin-top: auto; color: #ef4444;">
+                    <i class="ph ph-sign-out"></i>
+                    <span>Keluar</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-header">
+                <div class="greeting">
+                    <h1>Analisis Data</h1>
+                    <p>Wawasan mendalam tentang tren lingkungan pertanian Anda</p>
+                </div>
+                <div class="header-actions">
+                    <button class="icon-btn"><i class="ph ph-bell"></i></button>
+                    <div class="user-profile">
+                        <img src="https://ui-avatars.com/api/?name=Petani+Maju&background=16A34A&color=fff" alt="User">
+                    </div>
+                </div>
+            </header>
+
+            <div class="dashboard-grid">
+                <div class="card historical-card" style="grid-column: 1 / -1;">
+                    <div class="card-header">
+                        <h3>Tren Kelembaban Tanah Mingguan</h3>
+                        <div class="date-filter">7 Hari Terakhir</div>
+                    </div>
+                    <div class="chart-container-large" id="analysisChart1"></div>
+                </div>
+
+                <div class="card">
+                    <h3>Prediksi Cuaca & Dampak</h3>
+                    <p style="color: var(--text-muted); margin-top: 1rem; line-height: 1.6;">
+                        Hujan lebat diprediksi turun besok. Kami menyarankan untuk <strong>menunda penyiraman</strong> pada Lahan A untuk menghindari genangan berlebih. Suhu rata-rata akan stabil di 26°C.
+                    </p>
+                </div>
+
+                <div class="card">
+                    <h3>Rekomendasi Pemupukan</h3>
+                    <p style="color: var(--text-muted); margin-top: 1rem; line-height: 1.6;">
+                        pH tanah saat ini cenderung asam (6.4). Direkomendasikan untuk menaburkan kapur dolomit sekitar 200kg/hektar untuk menetralkan pH sebelum masa tanam minggu depan.
+                    </p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Mock Analysis Chart
+        const chart1 = echarts.init(document.getElementById('analysisChart1'));
+        chart1.setOption({
+            tooltip: { trigger: 'axis' },
+            xAxis: { type: 'category', data: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'] },
+            yAxis: { type: 'value', name: '%' },
+            series: [{
+                data: [45, 42, 38, 60, 58, 52, 48],
+                type: 'bar',
+                itemStyle: { color: '#d97706', borderRadius: [4, 4, 0, 0] }
+            }]
+        });
+        window.addEventListener('resize', () => chart1.resize());
+    </script>
+</body>
+</html>

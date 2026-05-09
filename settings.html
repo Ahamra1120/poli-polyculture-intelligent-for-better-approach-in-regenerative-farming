@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pengaturan - AgriDash</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <i class="ph ph-plant"></i>
+                <span>AgriDash</span>
+            </div>
+            
+            <nav class="nav-menu" style="margin-top: 2rem;">
+                <a href="index.html" class="nav-item">
+                    <i class="ph ph-squares-four"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="analysis.html" class="nav-item">
+                    <i class="ph ph-chart-line-up"></i>
+                    <span>Analisis</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="ph ph-bell"></i>
+                    <span>Notifikasi</span>
+                </a>
+                <a href="settings.html" class="nav-item active">
+                    <i class="ph ph-gear"></i>
+                    <span>Pengaturan</span>
+                </a>
+                <a href="login.html" class="nav-item" style="margin-top: auto; color: #ef4444;">
+                    <i class="ph ph-sign-out"></i>
+                    <span>Keluar</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-header">
+                <div class="greeting">
+                    <h1>Pengaturan</h1>
+                    <p>Sesuaikan profil dan preferensi perangkat Anda</p>
+                </div>
+            </header>
+
+            <div class="settings-section">
+                <h2>Profil Pengguna</h2>
+                <div class="form-group" style="max-width: 400px;">
+                    <label>Nama Lengkap</label>
+                    <input type="text" class="form-input" value="Petani Maju">
+                </div>
+                <div class="form-group" style="max-width: 400px;">
+                    <label>Alamat Email</label>
+                    <input type="email" class="form-input" value="petani@agridash.com">
+                </div>
+                <button class="btn-primary" style="max-width: 150px;">Simpan Profil</button>
+            </div>
+
+            <div class="settings-section">
+                <h2>Pengaturan Notifikasi Sensor</h2>
+                
+                <div class="setting-item">
+                    <div>
+                        <strong>Peringatan Suhu Tinggi</strong>
+                        <p style="color: var(--text-muted); font-size: 0.85rem;">Kirim SMS jika suhu di atas 35°C</p>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <div class="setting-item">
+                    <div>
+                        <strong>Peringatan Kelembaban Tanah Kritis</strong>
+                        <p style="color: var(--text-muted); font-size: 0.85rem;">Kirim Notifikasi Push jika tanah sangat kering (< 20%)</p>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <div>
+                        <strong>Laporan Harian</strong>
+                        <p style="color: var(--text-muted); font-size: 0.85rem;">Kirim rangkuman performa lahan via Email setiap jam 18:00</p>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+            
+        </main>
+    </div>
+</body>
+</html>

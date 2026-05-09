@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgriDash - IoT Dashboard Pertanian</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&display=swap"
+        rel="stylesheet">
+
+    <!-- Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- ECharts -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+
+    <!-- MQTT.js -->
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <i class="ph ph-plant"></i>
+                <span>AgriDash</span>
+            </div>
+
+            <div class="device-selector">
+                <p class="selector-label">Perangkat Aktif</p>
+                <div class="custom-select">
+                    <select id="deviceSelect">
+                        <option value="greenhouse-1">Greenhouse 1 (Sayuran)</option>
+                        <option value="field-a">Lahan A (Padi)</option>
+                        <option value="orchard-b">Kebun B (Buah)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="gps-info"
+                style="margin-bottom: 1.5rem; background: var(--bg-color); padding: 1rem; border-radius: 12px; border: 1px solid rgba(22, 163, 74, 0.2);">
+                <p class="selector-label" style="display: flex; align-items: center; gap: 0.5rem;"><i
+                        class="ph ph-map-pin"></i> Lokasi GPS</p>
+                <div class="data-value" style="font-size: 0.85rem; color: var(--text-main); line-height: 1.6;">
+                    Lat: <span id="gpsLat">-</span><br>
+                    Long: <span id="gpsLong">-</span><br>
+                    <span id="gpsTime"
+                        style="font-size: 0.7rem; color: var(--text-muted); font-family: 'DM Sans', sans-serif;"></span>
+                </div>
+            </div>
+
+            <nav class="nav-menu">
+                <a href="index.html" class="nav-item active">
+                    <i class="ph ph-squares-four"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="analysis.html" class="nav-item">
+                    <i class="ph ph-chart-line-up"></i>
+                    <span>Analisis</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="ph ph-bell"></i>
+                    <span>Notifikasi</span>
+                </a>
+                <a href="settings.html" class="nav-item">
+                    <i class="ph ph-gear"></i>
+                    <span>Pengaturan</span>
+                </a>
+                <a href="login.html" class="nav-item" style="margin-top: auto; color: #ef4444;">
+                    <i class="ph ph-sign-out"></i>
+                    <span>Keluar</span>
+                </a>
+            </nav>
+
+            <div class="connection-status">
+                <div class="status-indicator connecting" id="mqttStatusIcon"></div>
+                <span id="mqttStatusText">Menghubungkan MQTT...</span>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-header">
+                <div class="greeting">
+                    <h1>Pemantauan Lahan</h1>
+                    <p>Pantau kondisi tanaman Anda secara real-time</p>
+                </div>
+                <div class="header-actions">
+                    <button class="icon-btn"><i class="ph ph-bell"></i></button>
+                    <div class="user-profile">
+                        <img src="https://ui-avatars.com/api/?name=Petani+Maju&background=16A34A&color=fff" alt="User">
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Grid -->
+            <div class="dashboard-grid">
+
+                <!-- Temperature Card -->
+                <div class="card chart-card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="icon-box green-light">
+                                <i class="ph ph-thermometer"></i>
+                            </div>
+                            <h3>Temperatur Udara</h3>
+                        </div>
+                        <span class="sensor-type">DHT22</span>
+                    </div>
+                    <div class="chart-container" id="tempChart"></div>
+                </div>
+
+                <!-- Humidity Card -->
+                <div class="card chart-card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="icon-box blue-light">
+                                <i class="ph ph-drop"></i>
+                            </div>
+                            <h3>Kelembaban Udara</h3>
+                        </div>
+                        <span class="sensor-type">DHT22</span>
+                    </div>
+                    <div class="chart-container" id="humidChart"></div>
+                </div>
+
+                <!-- Soil Moisture Card -->
+                <div class="card chart-card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="icon-box brown-light">
+                                <i class="ph ph-waves"></i>
+                            </div>
+                            <h3>Kelembaban Tanah</h3>
+                        </div>
+                        <span class="sensor-type">Soil Moisture</span>
+                    </div>
+                    <div class="chart-container" id="soilMoistureChart"></div>
+                </div>
+
+                <!-- Soil pH Card -->
+                <div class="card chart-card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="icon-box purple-light">
+                                <i class="ph ph-flask"></i>
+                            </div>
+                            <h3>pH Tanah</h3>
+                        </div>
+                        <span class="sensor-type">pH Sensor</span>
+                    </div>
+                    <div class="chart-container" id="phChart"></div>
+                </div>
+
+            </div>
+
+            <!-- Historical Data (Decorative for visual fullness) -->
+            <div class="card historical-card">
+                <div class="card-header">
+                    <h3>Tren Harian</h3>
+                    <div class="date-filter">Hari Ini</div>
+                </div>
+                <div class="chart-container-large" id="historyChart"></div>
+            </div>
+
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
