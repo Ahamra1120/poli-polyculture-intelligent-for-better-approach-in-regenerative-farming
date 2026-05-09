@@ -226,7 +226,7 @@ function updateCharts(data, timestampStr) {
 // MQTT Configuration
 const mqttBrokerUrl = 'wss://broker.emqx.io:8084/mqtt';
 const mqttOptions = {
-    clientId: 'agridash_web_' + Math.random().toString(16).substr(2, 8),
+    clientId: 'poli_web_' + Math.random().toString(16).substr(2, 8),
     keepalive: 60,
     clean: true,
     reconnectPeriod: 1000,

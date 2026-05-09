@@ -1,6 +1,6 @@
-# AgriDash - IoT Dashboard Pertanian
+# POLI (Polyculture Intelligent for Better Approach in Regenerative Farming) - IoT Dashboard Pertanian
 
-AgriDash adalah platform dashboard IoT cerdas yang dirancang khusus untuk memantau kondisi pertanian dan lahan secara *real-time*. Proyek ini menyediakan visualisasi data yang responsif dan interaktif untuk membantu petani mengambil keputusan yang lebih baik berdasarkan data lingkungan.
+POLI (Polyculture Intelligent for Better Approach in Regenerative Farming) adalah platform dashboard IoT cerdas yang dirancang khusus untuk memantau kondisi pertanian dan lahan secara *real-time*. Proyek ini menyediakan visualisasi data yang responsif dan interaktif untuk membantu petani mengambil keputusan yang lebih baik berdasarkan data lingkungan.
 
 ## Fitur Utama
 
