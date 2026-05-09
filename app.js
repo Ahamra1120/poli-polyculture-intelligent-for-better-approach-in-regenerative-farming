@@ -345,3 +345,80 @@ document.addEventListener('DOMContentLoaded', () => {
         mqttClient.publish('hackviet/data/gps', JSON.stringify(GpsPayload));
     }, 5000);
 });
+
+// Tab Switching Logic
+function showSection(sectionId, element) {
+    // Hide all sections
+    document.querySelectorAll('.content-section').forEach(sec => {
+        sec.style.display = 'none';
+    });
+    
+    // Remove active class from nav
+    document.querySelectorAll('.nav-menu .nav-item').forEach(item => {
+        item.classList.remove('active');
+    });
+
+    // Show target section
+    const targetSection = document.getElementById(sectionId + 'Section');
+    if (targetSection) {
+        targetSection.style.display = 'block';
+    }
+    
+    // Add active class to clicked element
+    if (element) {
+        element.classList.add('active');
+    }
+
+    // Update Header Text
+    const title = document.querySelector('#pageTitle');
+    const subtitle = document.querySelector('#pageSubtitle');
+
+    if (sectionId === 'dashboard') {
+        title.innerText = 'Pemantauan Lahan';
+        subtitle.innerText = 'Pantau kondisi tanaman Anda secara real-time';
+        // Resize charts to fix ECharts visibility issues when container was hidden
+        setTimeout(() => {
+            if(tempChart) tempChart.resize();
+            if(humidChart) humidChart.resize();
+            if(soilMoistureChart) soilMoistureChart.resize();
+            if(phChart) phChart.resize();
+            if(historyChart) historyChart.resize();
+        }, 100);
+    } else if (sectionId === 'analysis') {
+        title.innerText = 'Analisis Data';
+        subtitle.innerText = 'Wawasan mendalam tentang tren lingkungan pertanian Anda';
+        if (!window.analysisChartInit) {
+            initAnalysisChart();
+            window.analysisChartInit = true;
+        } else {
+            setTimeout(() => window.chart1 && window.chart1.resize(), 100);
+        }
+    } else if (sectionId === 'settings') {
+        title.innerText = 'Pengaturan';
+        subtitle.innerText = 'Sesuaikan profil dan preferensi perangkat Anda';
+    }
+}
+
+// Global reference for analysis chart
+window.chart1 = null;
+window.analysisChartInit = false;
+function initAnalysisChart() {
+    setTimeout(() => {
+        const chartEl = document.getElementById('analysisChart1');
+        if (chartEl) {
+            window.chart1 = echarts.init(chartEl);
+            window.chart1.setOption({
+                tooltip: { trigger: 'axis' },
+                xAxis: { type: 'category', data: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'] },
+                yAxis: { type: 'value', name: '%' },
+                series: [{
+                    data: [45, 42, 38, 60, 58, 52, 48],
+                    type: 'bar',
+                    itemStyle: { color: '#d97706', borderRadius: [4, 4, 0, 0] }
+                }]
+            });
+            window.addEventListener('resize', () => window.chart1 && window.chart1.resize());
+        }
+    }, 100);
+}
+

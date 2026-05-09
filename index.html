@@ -58,11 +58,11 @@
             </div>
 
             <nav class="nav-menu">
-                <a href="index.html" class="nav-item active">
+                <a href="#" onclick="showSection('dashboard', this)" class="nav-item active">
                     <i class="ph ph-squares-four"></i>
                     <span>Dashboard</span>
                 </a>
-                <a href="analysis.html" class="nav-item">
+                <a href="#" onclick="showSection('analysis', this)" class="nav-item">
                     <i class="ph ph-chart-line-up"></i>
                     <span>Analisis</span>
                 </a>
@@ -70,7 +70,7 @@
                     <i class="ph ph-bell"></i>
                     <span>Notifikasi</span>
                 </a>
-                <a href="settings.html" class="nav-item">
+                <a href="#" onclick="showSection('settings', this)" class="nav-item">
                     <i class="ph ph-gear"></i>
                     <span>Pengaturan</span>
                 </a>
@@ -90,8 +90,8 @@
         <main class="main-content">
             <header class="top-header">
                 <div class="greeting">
-                    <h1>Pemantauan Lahan</h1>
-                    <p>Pantau kondisi tanaman Anda secara real-time</p>
+                    <h1 id="pageTitle">Pemantauan Lahan</h1>
+                    <p id="pageSubtitle">Pantau kondisi tanaman Anda secara real-time</p>
                 </div>
                 <div class="header-actions">
                     <button class="icon-btn"><i class="ph ph-bell"></i></button>
@@ -101,74 +101,157 @@
                 </div>
             </header>
 
-            <!-- Dashboard Grid -->
-            <div class="dashboard-grid">
+            <!-- Dashboard Section -->
+            <div id="dashboardSection" class="content-section">
+                <!-- Dashboard Grid -->
+                <div class="dashboard-grid">
 
-                <!-- Temperature Card -->
-                <div class="card chart-card">
-                    <div class="card-header">
-                        <div class="card-title">
-                            <div class="icon-box green-light">
-                                <i class="ph ph-thermometer"></i>
+                    <!-- Temperature Card -->
+                    <div class="card chart-card">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <div class="icon-box green-light">
+                                    <i class="ph ph-thermometer"></i>
+                                </div>
+                                <h3>Temperatur Udara</h3>
                             </div>
-                            <h3>Temperatur Udara</h3>
+                            <span class="sensor-type">DHT22</span>
                         </div>
-                        <span class="sensor-type">DHT22</span>
+                        <div class="chart-container" id="tempChart"></div>
                     </div>
-                    <div class="chart-container" id="tempChart"></div>
+
+                    <!-- Humidity Card -->
+                    <div class="card chart-card">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <div class="icon-box blue-light">
+                                    <i class="ph ph-drop"></i>
+                                </div>
+                                <h3>Kelembaban Udara</h3>
+                            </div>
+                            <span class="sensor-type">DHT22</span>
+                        </div>
+                        <div class="chart-container" id="humidChart"></div>
+                    </div>
+
+                    <!-- Soil Moisture Card -->
+                    <div class="card chart-card">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <div class="icon-box brown-light">
+                                    <i class="ph ph-waves"></i>
+                                </div>
+                                <h3>Kelembaban Tanah</h3>
+                            </div>
+                            <span class="sensor-type">Soil Moisture</span>
+                        </div>
+                        <div class="chart-container" id="soilMoistureChart"></div>
+                    </div>
+
+                    <!-- Soil pH Card -->
+                    <div class="card chart-card">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <div class="icon-box purple-light">
+                                    <i class="ph ph-flask"></i>
+                                </div>
+                                <h3>pH Tanah</h3>
+                            </div>
+                            <span class="sensor-type">pH Sensor</span>
+                        </div>
+                        <div class="chart-container" id="phChart"></div>
+                    </div>
+
                 </div>
 
-                <!-- Humidity Card -->
-                <div class="card chart-card">
+                <!-- Historical Data (Decorative for visual fullness) -->
+                <div class="card historical-card">
                     <div class="card-header">
-                        <div class="card-title">
-                            <div class="icon-box blue-light">
-                                <i class="ph ph-drop"></i>
-                            </div>
-                            <h3>Kelembaban Udara</h3>
-                        </div>
-                        <span class="sensor-type">DHT22</span>
+                        <h3>Tren Harian</h3>
+                        <div class="date-filter">Hari Ini</div>
                     </div>
-                    <div class="chart-container" id="humidChart"></div>
+                    <div class="chart-container-large" id="historyChart"></div>
                 </div>
-
-                <!-- Soil Moisture Card -->
-                <div class="card chart-card">
-                    <div class="card-header">
-                        <div class="card-title">
-                            <div class="icon-box brown-light">
-                                <i class="ph ph-waves"></i>
-                            </div>
-                            <h3>Kelembaban Tanah</h3>
-                        </div>
-                        <span class="sensor-type">Soil Moisture</span>
-                    </div>
-                    <div class="chart-container" id="soilMoistureChart"></div>
-                </div>
-
-                <!-- Soil pH Card -->
-                <div class="card chart-card">
-                    <div class="card-header">
-                        <div class="card-title">
-                            <div class="icon-box purple-light">
-                                <i class="ph ph-flask"></i>
-                            </div>
-                            <h3>pH Tanah</h3>
-                        </div>
-                        <span class="sensor-type">pH Sensor</span>
-                    </div>
-                    <div class="chart-container" id="phChart"></div>
-                </div>
-
             </div>
 
-            <!-- Historical Data (Decorative for visual fullness) -->
-            <div class="card historical-card">
-                <div class="card-header">
-                    <h3>Tren Harian</h3>
-                    <div class="date-filter">Hari Ini</div>
+            <!-- Analysis Section -->
+            <div id="analysisSection" class="content-section" style="display: none;">
+                <div class="dashboard-grid">
+                    <div class="card historical-card" style="grid-column: 1 / -1;">
+                        <div class="card-header">
+                            <h3>Tren Kelembaban Tanah Mingguan</h3>
+                            <div class="date-filter">7 Hari Terakhir</div>
+                        </div>
+                        <div class="chart-container-large" id="analysisChart1"></div>
+                    </div>
+
+                    <div class="card">
+                        <h3>Prediksi Cuaca & Dampak</h3>
+                        <p style="color: var(--text-muted); margin-top: 1rem; line-height: 1.6;">
+                            Hujan lebat diprediksi turun besok. Kami menyarankan untuk <strong>menunda penyiraman</strong> pada Lahan A untuk menghindari genangan berlebih. Suhu rata-rata akan stabil di 26°C.
+                        </p>
+                    </div>
+
+                    <div class="card">
+                        <h3>Rekomendasi Pemupukan</h3>
+                        <p style="color: var(--text-muted); margin-top: 1rem; line-height: 1.6;">
+                            pH tanah saat ini cenderung asam (6.4). Direkomendasikan untuk menaburkan kapur dolomit sekitar 200kg/hektar untuk menetralkan pH sebelum masa tanam minggu depan.
+                        </p>
+                    </div>
                 </div>
-                <div class="chart-container-large" id="historyChart"></div>
+            </div>
+
+            <!-- Settings Section -->
+            <div id="settingsSection" class="content-section" style="display: none;">
+                <div class="settings-section">
+                    <h2>Profil Pengguna</h2>
+                    <div class="form-group" style="max-width: 400px; margin-top: 1rem; margin-bottom: 1rem;">
+                        <label style="display: block; margin-bottom: 0.5rem;">Nama Lengkap</label>
+                        <input type="text" class="form-input" value="Petani Maju" style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    </div>
+                    <div class="form-group" style="max-width: 400px; margin-bottom: 1.5rem;">
+                        <label style="display: block; margin-bottom: 0.5rem;">Alamat Email</label>
+                        <input type="email" class="form-input" value="petani@agridash.com" style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    </div>
+                    <button class="icon-btn" style="background: var(--primary-color); color: white; border-radius: 8px; padding: 0.75rem 1.5rem;">Simpan Profil</button>
+                </div>
+
+                <div class="settings-section" style="margin-top: 2rem;">
+                    <h2>Pengaturan Notifikasi Sensor</h2>
+                    
+                    <div class="setting-item" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; border-bottom: 1px solid #e2e8f0;">
+                        <div>
+                            <strong>Peringatan Suhu Tinggi</strong>
+                            <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.25rem;">Kirim SMS jika suhu di atas 35°C</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="setting-item" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; border-bottom: 1px solid #e2e8f0;">
+                        <div>
+                            <strong>Peringatan Kelembaban Tanah Kritis</strong>
+                            <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.25rem;">Kirim Notifikasi Push jika tanah sangat kering (< 20%)</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="setting-item" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 0;">
+                        <div>
+                            <strong>Laporan Harian</strong>
+                            <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.25rem;">Kirim rangkuman performa lahan via Email setiap jam 18:00</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
             </div>
 
         </main>
