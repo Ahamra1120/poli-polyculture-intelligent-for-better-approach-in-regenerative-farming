@@ -157,10 +157,11 @@ void setup() {
   printBootSummary();
 
   updateDisplay();
-  connectWiFi();
+  setupSim808Gps();
+  lastGpsRefreshMs = millis() - GPS_REFRESH_INTERVAL_MS;
   mqttClient.setServer(MQTT_HOST, MQTT_PORT);
   mqttClient.setSocketTimeout(1);
-  setupSim808Gps();
+  connectWiFi();
   updateDisplay();
 }
 
@@ -380,8 +381,7 @@ void publishCurrentData() {
   Serial.println(F("%"));
 
   if (gps.hasFix) {
-    lastGpsSendOk = publishGpsIfFixed(timestamp);
-    lastSendMessage = lastGpsSendOk ? "Sent OK" : "Send failed";
+    publishGpsIfFixed(timestamp);
   } else {
     Serial.print(F("GPS waiting: "));
     Serial.println(gps.fixStatus);
@@ -741,6 +741,7 @@ void requestLocationCapture() {
   if (!locationReadyToSend()) {
     lastGpsSendOk = false;
     lastSendMessage = "Not sent";
+    lastAttemptResultMs = millis();
     Serial.print(F("GPS capture: blocked | "));
     Serial.println(centerStatusText());
     setLocationMessage("Not ready");
@@ -769,6 +770,7 @@ void captureCurrentLocation() {
     Serial.println(gps.fixStatus);
     lastGpsSendOk = false;
     lastSendMessage = "Not sent";
+    lastAttemptResultMs = millis();
     captureBusy = false;
     setLocationMessage("No fix found");
     return;
@@ -781,6 +783,7 @@ void captureCurrentLocation() {
 
   lastGpsSendOk = publishGpsIfFixed(capturedLocation.timestamp);
   lastSendMessage = lastGpsSendOk ? "Sent OK" : "Send failed";
+  lastAttemptResultMs = millis();
 
   Serial.print(F("GPS capture: saved | lat="));
   Serial.print(capturedLocation.latitude, 6);
@@ -797,7 +800,7 @@ void updateDisplay() {
   display.clearDisplay();
   display.setTextColor(SSD1306_WHITE);
 
-  if (lastSendMessage == "Sent OK") {
+  if (resultWasSuccess()) {
     drawSuccessBurst(animationFrame);
   } else {
     drawCornerTicks(animationFrame);
