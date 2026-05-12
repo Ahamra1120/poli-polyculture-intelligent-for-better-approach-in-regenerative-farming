@@ -225,6 +225,7 @@ function updateCharts(data, timestampStr) {
 
 // MQTT Configuration
 const mqttBrokerUrl = 'wss://broker.emqx.io:8084/mqtt';
+const enableMockPublisher = false;
 const mqttOptions = {
     clientId: 'poli_web_' + Math.random().toString(16).substr(2, 8),
     keepalive: 60,
@@ -317,6 +318,8 @@ document.addEventListener('DOMContentLoaded', () => {
     setupMQTT();
 
     // Simulate incoming MQTT data for demonstration if no actual publisher exists
+    if (!enableMockPublisher) return;
+
     setInterval(() => {
         if (!mqttClient || !mqttClient.connected) return;
 
@@ -421,4 +424,3 @@ function initAnalysisChart() {
         }
     }, 100);
 }
-
