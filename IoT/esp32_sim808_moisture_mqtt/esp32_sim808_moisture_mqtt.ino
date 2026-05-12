@@ -87,6 +87,8 @@ const unsigned long MQTT_PUBLISH_INTERVAL_MS = 10000;
 const unsigned long GPS_REFRESH_INTERVAL_MS = 5000;
 const unsigned long WIFI_RETRY_DELAY_MS = 500;
 const unsigned long MQTT_RETRY_DELAY_MS = 3000;
+const unsigned long MQTT_CONNECT_ATTEMPT_INTERVAL_MS = 3000;
+const unsigned long RESULT_HOLD_MS = 3500;
 
 HardwareSerial sim808(2);
 WiFiClient wifiClient;
@@ -97,6 +99,8 @@ unsigned long lastPublishMs = 0;
 unsigned long lastGpsRefreshMs = 0;
 unsigned long lastDisplayRefreshMs = 0;
 unsigned long lastButtonChangeMs = 0;
+unsigned long lastMqttConnectAttemptMs = 0;
+unsigned long lastAttemptResultMs = 0;
 uint8_t animationFrame = 0;
 bool sim808Ready = false;
 bool displayReady = false;
@@ -258,22 +262,24 @@ void ensureWiFi() {
 }
 
 void ensureMqtt() {
-  while (!mqttClient.connected()) {
-    Serial.print(F("Connecting MQTT... "));
+  if (mqttClient.connected()) return;
 
-    String clientId = "poli-esp32-";
-    clientId += String((uint32_t)ESP.getEfuseMac(), HEX);
-    clientId += "-";
-    clientId += String(random(0xffff), HEX);
+  unsigned long now = millis();
+  if (now - lastMqttConnectAttemptMs < MQTT_CONNECT_ATTEMPT_INTERVAL_MS) return;
+  lastMqttConnectAttemptMs = now;
 
-    if (mqttClient.connect(clientId.c_str())) {
-      Serial.println(F("connected."));
-    } else {
-      Serial.print(F("failed, rc="));
-      Serial.print(mqttClient.state());
-      Serial.println(F(". Retrying..."));
-      waitWithUi(MQTT_RETRY_DELAY_MS);
-    }
+  Serial.print(F("Connecting MQTT... "));
+
+  String clientId = "poli-esp32-";
+  clientId += String((uint32_t)ESP.getEfuseMac(), HEX);
+  clientId += "-";
+  clientId += String(random(0xffff), HEX);
+
+  if (mqttClient.connect(clientId.c_str())) {
+    Serial.println(F("connected."));
+  } else {
+    Serial.print(F("failed, rc="));
+    Serial.println(mqttClient.state());
   }
 }
 
@@ -439,6 +445,11 @@ String sendCommand(const char *command, unsigned long timeoutMs) {
     while (sim808.available()) {
       response += char(sim808.read());
     }
+
+    if (response.indexOf("\nOK") >= 0 || response.indexOf("\r\nOK") >= 0 || response.indexOf("ERROR") >= 0) {
+      break;
+    }
+
     serviceControlsAndDisplay();
     yield();
   }
@@ -557,13 +568,25 @@ bool locationReadyToSend() {
   return sim808Ready && WiFi.status() == WL_CONNECTED && mqttClient.connected() && gps.hasFix && !captureBusy;
 }
 
+bool resultDisplayActive() {
+  return lastAttemptResultMs > 0 && millis() - lastAttemptResultMs < RESULT_HOLD_MS;
+}
+
+bool resultWasSuccess() {
+  return resultDisplayActive() && lastSendMessage == "Sent OK";
+}
+
+bool resultWasFailure() {
+  return resultDisplayActive() && (lastSendMessage == "Send failed" || lastSendMessage == "Not sent");
+}
+
 const char *centerStatusText() {
   if (buttonLowAtBoot && buttonPressed()) return "WIRING?";
   if (captureBusy) return "GPS...";
   if (captureRequested) return "QUEUED";
   if (locationMessage == "Button seen") return "PRESSED";
-  if (lastSendMessage == "Sent OK") return "SENT";
-  if (lastSendMessage == "Send failed" || lastSendMessage == "Not sent") return "FAILED";
+  if (resultWasSuccess()) return "SENT";
+  if (resultWasFailure()) return "FAILED";
   if (WiFi.status() != WL_CONNECTED) return "NO WIFI";
   if (!mqttClient.connected()) return "MQTT OFF";
   if (!sim808Ready) return "SIM808";
@@ -602,6 +625,8 @@ void drawFocusPulse(uint8_t phase) {
 }
 
 void drawSuccessIcon() {
+  display.fillCircle(64, 32, 29, SSD1306_WHITE);
+  display.fillCircle(64, 32, 25, SSD1306_BLACK);
   display.drawLine(42, 33, 55, 46, SSD1306_WHITE);
   display.drawLine(43, 34, 55, 47, SSD1306_WHITE);
   display.drawLine(55, 46, 86, 18, SSD1306_WHITE);
@@ -627,6 +652,20 @@ void drawCenterStatus(const char *text) {
   }
 
   drawCenteredText(text);
+}
+
+void drawSuccessBurst(uint8_t phase) {
+  if (phase % 2 == 0) {
+    display.drawLine(64, 0, 64, 8, SSD1306_WHITE);
+    display.drawLine(64, 63, 64, 55, SSD1306_WHITE);
+    display.drawLine(0, 32, 8, 32, SSD1306_WHITE);
+    display.drawLine(127, 32, 119, 32, SSD1306_WHITE);
+  } else {
+    display.drawLine(18, 8, 25, 15, SSD1306_WHITE);
+    display.drawLine(110, 8, 103, 15, SSD1306_WHITE);
+    display.drawLine(18, 56, 25, 49, SSD1306_WHITE);
+    display.drawLine(110, 56, 103, 49, SSD1306_WHITE);
+  }
 }
 
 void drawCenteredText(const char *text) {
@@ -722,9 +761,8 @@ void processCaptureRequest() {
 
 void captureCurrentLocation() {
   captureBusy = true;
-  Serial.println(F("GPS capture: checking..."));
-  setLocationMessage("Checking GPS");
-  refreshGps();
+  Serial.println(F("GPS capture: using latest fix..."));
+  setLocationMessage("Sending");
 
   if (!gps.hasFix) {
     Serial.print(F("GPS capture: no fix | status="));
@@ -759,8 +797,13 @@ void updateDisplay() {
   display.clearDisplay();
   display.setTextColor(SSD1306_WHITE);
 
-  drawCornerTicks(animationFrame);
-  drawFocusPulse(animationFrame);
+  if (lastSendMessage == "Sent OK") {
+    drawSuccessBurst(animationFrame);
+  } else {
+    drawCornerTicks(animationFrame);
+    drawFocusPulse(animationFrame);
+  }
+
   drawCenterStatus(centerStatusText());
 
   display.display();
