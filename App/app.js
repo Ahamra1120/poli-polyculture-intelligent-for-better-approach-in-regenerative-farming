@@ -1,828 +1,504 @@
-// ECharts Instances
-let tempChart, humidChart, soilMoistureChart, phChart, historyChart;
-
-// Current Device Data State
-const deviceData = {
-    'greenhouse-1': { temp_air: 24.5, hum_air: 65, hum_soil: 45, ph_soil: 6.5 },
-    'field-a': { temp_air: 28.2, hum_air: 55, hum_soil: 30, ph_soil: 5.8 },
-    'orchard-b': { temp_air: 26.0, hum_air: 70, hum_soil: 60, ph_soil: 6.8 }
-};
-
-let currentDevice = 'greenhouse-1';
-
-// History Data State
-const maxHistoryItems = 10;
-let historyTimes = [];
-let historyTemps = [];
-let historyHums = [];
-
-// Theme Colors
-const colors = {
-    green: '#16a34a',
-    blue: '#3b82f6',
-    brown: '#d97706',
-    purple: '#8b5cf6',
-    textMain: '#1e293b',
-    textMuted: '#64748b'
-};
-
-const fontConfig = {
-    fontFamily: '"DM Mono", monospace'
-};
-
-// Initialize Charts
-function initCharts() {
-    tempChart = echarts.init(document.getElementById('tempChart'));
-    humidChart = echarts.init(document.getElementById('humidChart'));
-    soilMoistureChart = echarts.init(document.getElementById('soilMoistureChart'));
-    phChart = echarts.init(document.getElementById('phChart'));
-    historyChart = echarts.init(document.getElementById('historyChart'));
-
-    // Common Gauge Config Template
-    const getGaugeOption = (name, min, max, unit, color, val) => ({
-        series: [
-            {
-                type: 'gauge',
-                startAngle: 180,
-                endAngle: 0,
-                center: ['50%', '75%'],
-                radius: '100%',
-                min: min,
-                max: max,
-                splitNumber: 4,
-                axisLine: {
-                    lineStyle: {
-                        width: 10,
-                        color: [
-                            [1, '#e2e8f0']
-                        ]
-                    }
-                },
-                progress: {
-                    show: true,
-                    width: 10,
-                    itemStyle: {
-                        color: color
-                    }
-                },
-                pointer: {
-                    icon: 'path://M12.8,0.7l12,40.1H0.7L12.8,0.7z',
-                    length: '12%',
-                    width: 20,
-                    offsetCenter: [0, '-60%'],
-                    itemStyle: {
-                        color: 'auto'
-                    }
-                },
-                axisTick: {
-                    length: 12,
-                    lineStyle: {
-                        color: 'auto',
-                        width: 2
-                    }
-                },
-                splitLine: {
-                    length: 20,
-                    lineStyle: {
-                        color: 'auto',
-                        width: 5
-                    }
-                },
-                axisLabel: {
-                    color: colors.textMuted,
-                    fontSize: 12,
-                    distance: -40,
-                    formatter: function (value) {
-                        return value;
-                    }
-                },
-                title: {
-                    offsetCenter: [0, '-10%'],
-                    fontSize: 14,
-                    color: colors.textMuted,
-                    fontFamily: '"DM Sans", sans-serif'
-                },
-                detail: {
-                    fontSize: 28,
-                    offsetCenter: [0, '0%'],
-                    valueAnimation: true,
-                    formatter: function (value) {
-                        return '{value|' + value.toFixed(1) + '}{unit|' + unit + '}';
-                    },
-                    rich: {
-                        value: {
-                            fontSize: 32,
-                            fontWeight: 'bolder',
-                            color: colors.textMain,
-                            fontFamily: fontConfig.fontFamily
-                        },
-                        unit: {
-                            fontSize: 16,
-                            color: colors.textMuted,
-                            padding: [0, 0, -10, 5]
-                        }
-                    }
-                },
-                data: [
-                    {
-                        value: val,
-                        name: ''
-                    }
-                ]
-            }
+const crops = {
+    cabai: {
+        name: "Cabai Rawit",
+        scientific: "Capsicum frutescens",
+        spacing: [50, 60],
+        ph: [6.0, 7.0],
+        temp: [24, 28],
+        yieldPerPlant: 0.75,
+        companions: [
+            { name: "Kemangi", role: "repellent", type: "companion", note: "Bantu tekan thrips dan lalat putih." },
+            { name: "Marigold", role: "refugia", type: "refugia", note: "Menarik predator hama dan menekan nematoda." },
+            { name: "Bayam", role: "sela", type: "ground", note: "Panen cepat di sela awal pertumbuhan." }
         ]
-    });
-
-    // Initial Options
-    tempChart.setOption(getGaugeOption('Temp', 0, 50, '°C', colors.green, deviceData[currentDevice].temp_air));
-    humidChart.setOption(getGaugeOption('Humid', 0, 100, '%', colors.blue, deviceData[currentDevice].hum_air));
-    soilMoistureChart.setOption(getGaugeOption('Soil', 0, 100, '%', colors.brown, deviceData[currentDevice].hum_soil));
-    phChart.setOption(getGaugeOption('pH', 0, 14, '', colors.purple, deviceData[currentDevice].ph_soil));
-
-    // History Chart
-    const historyOption = {
-        tooltip: {
-            trigger: 'axis'
-        },
-        legend: {
-            data: ['Temperatur', 'Kelembaban'],
-            bottom: 0,
-            textStyle: { fontFamily: '"DM Sans", sans-serif' }
-        },
-        grid: {
-            left: '3%',
-            right: '4%',
-            bottom: '15%',
-            top: '5%',
-            containLabel: true
-        },
-        xAxis: {
-            type: 'category',
-            boundaryGap: false,
-            data: historyTimes,
-            axisLabel: { fontFamily: fontConfig.fontFamily }
-        },
-        yAxis: {
-            type: 'value',
-            axisLabel: { fontFamily: fontConfig.fontFamily }
-        },
-        series: [
-            {
-                name: 'Temperatur',
-                type: 'line',
-                smooth: true,
-                itemStyle: { color: colors.green },
-                areaStyle: {
-                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                        { offset: 0, color: 'rgba(22, 163, 74, 0.4)' },
-                        { offset: 1, color: 'rgba(22, 163, 74, 0.05)' }
-                    ])
-                },
-                data: historyTemps
-            },
-            {
-                name: 'Kelembaban',
-                type: 'line',
-                smooth: true,
-                itemStyle: { color: colors.blue },
-                data: historyHums
-            }
+    },
+    terung: {
+        name: "Terung Ungu",
+        scientific: "Solanum melongena",
+        spacing: [60, 70],
+        ph: [5.5, 6.8],
+        temp: [26, 29],
+        yieldPerPlant: 1.4,
+        companions: [
+            { name: "Kemangi", role: "repellent", type: "companion", note: "Aroma kuat membantu mengganggu serangga pengisap." },
+            { name: "Buncis", role: "legume", type: "ground", note: "Menambah nitrogen dan menutup tanah." },
+            { name: "Zinnia", role: "refugia", type: "refugia", note: "Mengundang penyerbuk dan lalat syrphid." }
         ]
-    };
-    historyChart.setOption(historyOption);
-}
-
-// Update charts with new data
-function updateCharts(data, timestampStr) {
-    tempChart.setOption({ series: [{ data: [{ value: data.temp_air }] }] });
-    humidChart.setOption({ series: [{ data: [{ value: data.hum_air }] }] });
-    soilMoistureChart.setOption({ series: [{ data: [{ value: data.hum_soil }] }] });
-    phChart.setOption({ series: [{ data: [{ value: data.ph_soil }] }] });
-
-    if (timestampStr) {
-        // Extract time from 'yyyy-mm-dd hh:mm:ss'
-        const timeOnly = timestampStr.split(' ')[1] || timestampStr;
-
-        historyTimes.push(timeOnly);
-        historyTemps.push(parseFloat(data.temp_air.toFixed(1)));
-        historyHums.push(parseFloat(data.hum_air.toFixed(1)));
-
-        if (historyTimes.length > maxHistoryItems) {
-            historyTimes.shift();
-            historyTemps.shift();
-            historyHums.shift();
-        }
-
-        historyChart.setOption({
-            xAxis: { data: historyTimes },
-            series: [
-                { data: historyTemps },
-                { data: historyHums }
-            ]
-        });
+    },
+    jagung: {
+        name: "Jagung",
+        scientific: "Zea mays",
+        spacing: [75, 20],
+        ph: [5.5, 7.5],
+        temp: [25, 33],
+        yieldPerPlant: 0.28,
+        companions: [
+            { name: "Kacang Panjang", role: "legume", type: "companion", note: "Fiksasi nitrogen dan dapat merambat di turus." },
+            { name: "Labu/cover", role: "penutup", type: "ground", note: "Menekan gulma di permukaan tanah." },
+            { name: "Bunga Matahari", role: "refugia", type: "refugia", note: "Mengundang lebah dan predator alami." }
+        ]
+    },
+    padi: {
+        name: "Padi Gogo",
+        scientific: "Oryza sativa",
+        spacing: [25, 25],
+        ph: [5.0, 6.5],
+        temp: [25, 35],
+        yieldPerPlant: 0.045,
+        companions: [
+            { name: "Kenikir", role: "refugia", type: "refugia", note: "Menarik predator kutu daun dan wereng." },
+            { name: "Azolla", role: "penutup", type: "ground", note: "Menambah nitrogen pada area lembab." },
+            { name: "Sereh", role: "repellent", type: "companion", note: "Bantu mengusir serangga pengisap di tepi bedeng." }
+        ]
+    },
+    singkong: {
+        name: "Singkong",
+        scientific: "Manihot esculenta",
+        spacing: [100, 100],
+        ph: [4.5, 7.0],
+        temp: [20, 30],
+        yieldPerPlant: 3.2,
+        companions: [
+            { name: "Kedelai", role: "legume", type: "companion", note: "Tumpang sari rendah untuk menambah nitrogen." },
+            { name: "Arachis pintoi", role: "cover", type: "ground", note: "Menutup tanah dan tahan naungan." },
+            { name: "Marigold", role: "refugia", type: "refugia", note: "Pelindung perimeter dari nematoda akar." }
+        ]
+    },
+    ubi: {
+        name: "Ubi Jalar",
+        scientific: "Ipomoea batatas",
+        spacing: [30, 70],
+        ph: [5.5, 6.5],
+        temp: [24, 30],
+        yieldPerPlant: 0.85,
+        companions: [
+            { name: "Buncis", role: "legume", type: "companion", note: "Mengisi nitrogen tanpa menaungi berlebihan." },
+            { name: "Kenikir", role: "refugia", type: "refugia", note: "Membantu kontrol kutu daun." },
+            { name: "Sereh", role: "repellent", type: "companion", note: "Aman sebagai pembatas aromatic." }
+        ]
+    },
+    tomat: {
+        name: "Tomat",
+        scientific: "Solanum lycopersicum",
+        spacing: [50, 70],
+        ph: [6.0, 7.0],
+        temp: [20, 27],
+        yieldPerPlant: 2.2,
+        companions: [
+            { name: "Kemangi", role: "repellent", type: "companion", note: "Cocok dekat tomat untuk bantu ganggu lalat putih." },
+            { name: "Marigold", role: "refugia", type: "refugia", note: "Diletakkan di perimeter untuk nematoda dan penyerbuk." },
+            { name: "Selada", role: "sela", type: "ground", note: "Mengisi sela awal, toleran sedikit naungan." }
+        ]
+    },
+    kedelai: {
+        name: "Kedelai",
+        scientific: "Glycine max",
+        spacing: [40, 15],
+        ph: [6.0, 6.5],
+        temp: [25, 30],
+        yieldPerPlant: 0.055,
+        companions: [
+            { name: "Jagung", role: "struktur", type: "companion", note: "Polikultur klasik dengan kanopi berbeda." },
+            { name: "Zinnia", role: "refugia", type: "refugia", note: "Mendukung penyerbuk dan predator alami." },
+            { name: "Krokot", role: "cover", type: "ground", note: "Menutup tanah panas dan akumulator mineral." }
+        ]
+    },
+    talas: {
+        name: "Talas",
+        scientific: "Colocasia esculenta",
+        spacing: [50, 50],
+        ph: [5.5, 6.5],
+        temp: [21, 27],
+        yieldPerPlant: 1.8,
+        companions: [
+            { name: "Pegagan", role: "cover", type: "ground", note: "Suka lembab dan menutup tanah di sekitar talas." },
+            { name: "Torenia", role: "refugia", type: "refugia", note: "Menarik parasitoid kecil pada area teduh." },
+            { name: "Sereh", role: "repellent", type: "companion", note: "Baik sebagai pagar aroma di tepi." }
+        ]
     }
-}
-
-// MQTT Configuration
-const mqttBrokerUrl = 'wss://broker.emqx.io:8084/mqtt';
-const enableMockPublisher = false;
-const mqttOptions = {
-    clientId: 'poli_web_' + Math.random().toString(16).substr(2, 8),
-    keepalive: 60,
-    clean: true,
-    reconnectPeriod: 1000,
-    connectTimeout: 30 * 1000,
 };
 
-let mqttClient;
+const sensorState = {
+    ph: 6.4,
+    temp: 26.0,
+    moisture: 64,
+    lat: -6.2,
+    long: 106.817
+};
 
-function setupMQTT() {
-    const statusIcon = document.getElementById('mqttStatusIcon');
-    const statusText = document.getElementById('mqttStatusText');
+const state = {
+    step: 0,
+    selectedCompanion: 0
+};
 
-    mqttClient = mqtt.connect(mqttBrokerUrl, mqttOptions);
-
-    mqttClient.on('connect', () => {
-        console.log('Connected to MQTT Broker: ' + mqttBrokerUrl);
-        statusIcon.className = 'status-indicator connected';
-        statusText.innerText = 'Terhubung';
-
-        // Subscribe to predefined Hackathon topics
-        mqttClient.subscribe('hackviet/data/sensors');
-        mqttClient.subscribe('hackviet/data/gps');
-        console.log('Subscribed to hackviet/data/sensors and hackviet/data/gps');
-    });
-
-    mqttClient.on('error', (err) => {
-        console.error('MQTT Connection Error: ', err);
-        statusIcon.className = 'status-indicator disconnected';
-        statusText.innerText = 'Koneksi Gagal';
-    });
-
-    mqttClient.on('reconnect', () => {
-        statusIcon.className = 'status-indicator connecting';
-        statusText.innerText = 'Menghubungkan...';
-    });
-
-    mqttClient.on('message', (topic, message) => {
-        try {
-            const payload = JSON.parse(message.toString());
-            console.log(`Received data on ${topic}:`, payload);
-
-            if (topic === 'hackviet/data/sensors') {
-                // Update local state for current device
-                if (payload.temp_air !== undefined) deviceData[currentDevice].temp_air = payload.temp_air;
-                if (payload.hum_air !== undefined) deviceData[currentDevice].hum_air = payload.hum_air;
-                if (payload.hum_soil !== undefined) deviceData[currentDevice].hum_soil = payload.hum_soil;
-                if (payload.ph_soil !== undefined) deviceData[currentDevice].ph_soil = payload.ph_soil;
-
-                // Update UI
-                updateCharts(deviceData[currentDevice], payload.timestamp);
-
-                if (typeof updateLiveSensorView === 'function') {
-                    updateLiveSensorView(payload, null);
-                }
-            } else if (topic === 'hackviet/data/gps') {
-                // Update GPS Info UI
-                if (payload.lat !== undefined) document.getElementById('gpsLat').innerText = payload.lat.toFixed(6);
-                if (payload.long !== undefined) document.getElementById('gpsLong').innerText = payload.long.toFixed(6);
-                if (payload.timestamp !== undefined) document.getElementById('gpsTime').innerText = `Diperbarui: ${payload.timestamp}`;
-
-                if (typeof updateLiveSensorView === 'function') {
-                    updateLiveSensorView(null, payload);
-                }
-            }
-        } catch (e) {
-            console.error('Failed to parse MQTT message:', e);
-        }
-    });
-}
-
-// Device Selector Logic
-document.getElementById('deviceSelect').addEventListener('change', (e) => {
-    currentDevice = e.target.value;
-
-    // Clear history on device change
-    historyTimes = [];
-    historyTemps = [];
-    historyHums = [];
-    historyChart.setOption({ xAxis: { data: historyTimes }, series: [{ data: historyTemps }, { data: historyHums }] });
-
-    updateCharts(deviceData[currentDevice]);
-});
-
-// Window Resize Handling
-window.addEventListener('resize', () => {
-    tempChart.resize();
-    humidChart.resize();
-    soilMoistureChart.resize();
-    phChart.resize();
-    historyChart.resize();
-});
-
-// Initialize Everything
-document.addEventListener('DOMContentLoaded', () => {
-    initCharts();
-    setupMQTT();
-
-    // Simulate incoming MQTT data for demonstration if no actual publisher exists
-    if (!enableMockPublisher) return;
-
-    setInterval(() => {
-        if (!mqttClient || !mqttClient.connected) return;
-
-        // Randomly fluctuate values slightly to show real-time effect
-        const data = deviceData[currentDevice];
-
-        const now = new Date();
-        const timestamp = now.toISOString().replace('T', ' ').substring(0, 19);
-
-        const SensorPayload = {
-            timestamp: timestamp,
-            temp_air: data.temp_air + (Math.random() * 0.4 - 0.2),
-            hum_air: data.hum_air + (Math.random() * 1 - 0.5),
-            hum_soil: data.hum_soil + (Math.random() * 1 - 0.5),
-            ph_soil: data.ph_soil + (Math.random() * 0.1 - 0.05)
-        };
-
-        const GpsPayload = {
-            timestamp: timestamp,
-            lat: -6.200000 + (Math.random() * 0.001 - 0.0005),
-            long: 106.816666 + (Math.random() * 0.001 - 0.0005)
-        };
-
-        // Publish to broker so our own app receives it
-        mqttClient.publish('hackviet/data/sensors', JSON.stringify(SensorPayload));
-        mqttClient.publish('hackviet/data/gps', JSON.stringify(GpsPayload));
-    }, 5000);
-});
-
-// Tab Switching Logic
-function showSection(sectionId, element) {
-    // Hide all sections
-    document.querySelectorAll('.content-section').forEach(sec => {
-        sec.style.display = 'none';
-    });
-    
-    // Remove active class from nav
-    document.querySelectorAll('.nav-menu .nav-item').forEach(item => {
-        item.classList.remove('active');
-    });
-
-    // Show target section
-    const targetSection = document.getElementById(sectionId + 'Section');
-    if (targetSection) {
-        targetSection.style.display = 'block';
-    }
-    
-    // Add active class to clicked element
-    if (element) {
-        element.classList.add('active');
-    }
-
-    // Update Header Text
-    const title = document.querySelector('#pageTitle');
-    const subtitle = document.querySelector('#pageSubtitle');
-
-    if (sectionId === 'dashboard') {
-        title.innerText = 'Pemantauan Lahan';
-        subtitle.innerText = 'Pantau kondisi tanaman Anda secara real-time';
-        // Resize charts to fix ECharts visibility issues when container was hidden
-        setTimeout(() => {
-            if(tempChart) tempChart.resize();
-            if(humidChart) humidChart.resize();
-            if(soilMoistureChart) soilMoistureChart.resize();
-            if(phChart) phChart.resize();
-            if(historyChart) historyChart.resize();
-        }, 100);
-    } else if (sectionId === 'analysis') {
-        title.innerText = 'Analisis Data';
-        subtitle.innerText = 'Wawasan mendalam tentang tren lingkungan pertanian Anda';
-        if (!window.analysisChartInit) {
-            initAnalysisChart();
-            window.analysisChartInit = true;
-        } else {
-            setTimeout(() => window.chart1 && window.chart1.resize(), 100);
-        }
-    } else if (sectionId === 'settings') {
-        title.innerText = 'Pengaturan';
-        subtitle.innerText = 'Sesuaikan profil dan preferensi perangkat Anda';
-    }
-}
-
-// Global reference for analysis chart
-window.chart1 = null;
-window.analysisChartInit = false;
-function initAnalysisChart() {
-    setTimeout(() => {
-        const chartEl = document.getElementById('analysisChart1');
-        if (chartEl) {
-            window.chart1 = echarts.init(chartEl);
-            window.chart1.setOption({
-                tooltip: { trigger: 'axis' },
-                xAxis: { type: 'category', data: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'] },
-                yAxis: { type: 'value', name: '%' },
-                series: [{
-                    data: [45, 42, 38, 60, 58, 52, 48],
-                    type: 'bar',
-                    itemStyle: { color: '#d97706', borderRadius: [4, 4, 0, 0] }
-                }]
-            });
-            window.addEventListener('resize', () => window.chart1 && window.chart1.resize());
-        }
-    }, 100);
-}
-<<<<<<< HEAD
-
-// --- Bed Management & Plant Analysis Logic ---
-
-// State
-let beds = [];
-let currentPingSession = [];
-let latestSensorData = null;
-let latestGpsData = null;
-
-// Mock Plant Database (dapat disesuaikan dengan DATABASE TANAMAN.pdf)
-const plantDatabase = [
-    { id: 'padi', name: 'Padi', idealTemp: [25, 30], idealHum: [60, 80], idealSoilHum: [70, 90], idealPh: [5.5, 6.5] },
-    { id: 'jagung', name: 'Jagung', idealTemp: [21, 27], idealHum: [50, 70], idealSoilHum: [50, 70], idealPh: [5.8, 7.0] },
-    { id: 'tomat', name: 'Tomat', idealTemp: [20, 26], idealHum: [60, 70], idealSoilHum: [60, 80], idealPh: [6.0, 6.8] }
+const stepTitles = [
+    "Isi tanaman kamu",
+    "Isi luas dan target panen",
+    "Tancapkan alat",
+    "Hasil kondisi lahan",
+    "Rekomendasi companion tanaman",
+    "Denah skala nyata"
 ];
 
-// Initialize UI elements
-const addBedBtn = document.getElementById('addBedBtn');
-const pingModal = document.getElementById('pingModal');
-const cancelPingBtn = document.getElementById('cancelPingBtn');
-const recordPingLiveBtn = document.getElementById('recordPingLiveBtn');
-const recordPingDemoBtn = document.getElementById('recordPingDemoBtn');
-const finishBedBtn = document.getElementById('finishBedBtn');
-const pingCountEl = document.getElementById('pingCount');
-const liveSensorDataEl = document.getElementById('liveSensorData');
-const pingListEl = document.getElementById('pingList');
-const bedListEl = document.getElementById('bedList');
-const bedMapLayer = document.getElementById('bedMapLayer');
-const mapInstructions = document.getElementById('mapInstructions');
+const els = {};
 
-const plantAnalysisModal = document.getElementById('plantAnalysisModal');
-const closeAnalysisBtn = document.getElementById('closeAnalysisBtn');
-const plantSelect = document.getElementById('plantSelect');
-let analyzingBedIndex = null;
+function qs(selector) {
+    return document.querySelector(selector);
+}
 
-if (plantSelect) {
-    // Populate Plant Select
-    plantDatabase.forEach(plant => {
-        const opt = document.createElement('option');
-        opt.value = plant.id;
-        opt.textContent = plant.name;
-        plantSelect.appendChild(opt);
+function qsa(selector) {
+    return Array.from(document.querySelectorAll(selector));
+}
+
+function clamp(value, min, max) {
+    return Math.min(Math.max(value, min), max);
+}
+
+function formatNumber(value, maxDigits = 0) {
+    return new Intl.NumberFormat("id-ID", {
+        maximumFractionDigits: maxDigits
+    }).format(value);
+}
+
+function getInputs() {
+    const crop = crops[els.primaryCrop.value] || crops.tomat;
+    const lengthM = clamp(Number(els.bedLength.value) || 1, 1, 60);
+    const widthM = clamp(Number(els.bedWidth.value) || 0.5, 0.5, 20);
+    const targetYield = clamp(Number(els.targetYield.value) || 1, 1, 5000);
+    return { crop, lengthM, widthM, targetYield };
+}
+
+function calculatePlan() {
+    const { crop, lengthM, widthM, targetYield } = getInputs();
+    const [baseX, baseY] = crop.spacing;
+    const baseCols = Math.max(1, Math.floor((widthM * 100) / baseX));
+    const baseRows = Math.max(1, Math.floor((lengthM * 100) / baseY));
+    const baseCount = Math.max(1, baseCols * baseRows);
+    const targetPlants = Math.max(1, Math.ceil(targetYield / crop.yieldPerPlant));
+    const pressure = Math.sqrt(baseCount / targetPlants);
+    const spacingFactor = clamp(pressure, 0.68, 1.22);
+    const actualX = Math.max(10, Math.round(baseX * spacingFactor));
+    const actualY = Math.max(10, Math.round(baseY * spacingFactor));
+    const cols = Math.max(1, Math.floor((widthM * 100) / actualX));
+    const rows = Math.max(1, Math.floor((lengthM * 100) / actualY));
+    const primaryCount = rows * cols;
+    const companionCount = Math.max(4, Math.round((rows + cols) * 1.2));
+    const yieldEstimate = primaryCount * crop.yieldPerPlant;
+
+    return {
+        crop,
+        lengthM,
+        widthM,
+        targetYield,
+        baseSpacing: [baseX, baseY],
+        actualSpacing: [actualX, actualY],
+        rows,
+        cols,
+        primaryCount,
+        companionCount,
+        yieldEstimate,
+        spacingFactor
+    };
+}
+
+function setStep(nextStep) {
+    state.step = clamp(nextStep, 0, stepTitles.length - 1);
+
+    qsa("[data-step-panel]").forEach((panel, index) => {
+        panel.classList.toggle("active", index === state.step);
+    });
+
+    qsa(".step-tab").forEach((tab, index) => {
+        tab.classList.toggle("active", index === state.step);
+    });
+
+    els.stepTitle.textContent = stepTitles[state.step];
+    els.currentStepNumber.textContent = state.step + 1;
+    els.progressBar.style.width = `${((state.step + 1) / stepTitles.length) * 100}%`;
+    els.prevStep.disabled = state.step === 0;
+    els.nextStep.innerHTML = state.step === stepTitles.length - 1
+        ? 'Selesai <i class="ph ph-check"></i>'
+        : 'Lanjut <i class="ph ph-arrow-right"></i>';
+}
+
+function renderCropProfile(plan) {
+    const [x, y] = plan.crop.spacing;
+    els.cropProfile.innerHTML = `
+        <div class="profile-row"><span>Nama latin</span><strong>${plan.crop.scientific}</strong></div>
+        <div class="profile-row"><span>Jarak database</span><strong>${x} x ${y} cm</strong></div>
+        <div class="profile-row"><span>pH ideal</span><strong>${plan.crop.ph[0]} - ${plan.crop.ph[1]}</strong></div>
+        <div class="profile-row"><span>Suhu optimal</span><strong>${plan.crop.temp[0]} - ${plan.crop.temp[1]} C</strong></div>
+    `;
+}
+
+function renderSensorAndAdvice(plan) {
+    els.sensorPh.textContent = sensorState.ph.toFixed(1);
+    els.sensorTemp.textContent = `${sensorState.temp.toFixed(1)} C`;
+    els.sensorMoisture.textContent = `${Math.round(sensorState.moisture)}%`;
+    els.sensorGps.textContent = `${sensorState.lat.toFixed(3)}, ${sensorState.long.toFixed(3)}`;
+
+    const phLow = plan.crop.ph[0];
+    const phHigh = plan.crop.ph[1];
+    const tempLow = plan.crop.temp[0];
+    const tempHigh = plan.crop.temp[1];
+    const phFit = sensorState.ph >= phLow && sensorState.ph <= phHigh;
+    const tempFit = sensorState.temp >= tempLow && sensorState.temp <= tempHigh;
+    const score = 70 + (phFit ? 14 : 0) + (tempFit ? 10 : 0) + (sensorState.moisture > 45 && sensorState.moisture < 82 ? 6 : 0);
+    const advice = [];
+
+    if (sensorState.ph < phLow) {
+        advice.push("pH sedikit asam. Tambahkan dolomit tipis sebelum tanam.");
+    } else if (sensorState.ph > phHigh) {
+        advice.push("pH terlalu basa. Tambahkan bahan organik matang untuk menurunkan reaksi tanah.");
+    } else {
+        advice.push(`pH ${sensorState.ph.toFixed(1)} masuk rentang aman untuk ${plan.crop.name}.`);
+    }
+
+    if (!tempFit) {
+        advice.push("Suhu perlu dimitigasi dengan naungan atau penyesuaian waktu tanam.");
+    } else {
+        advice.push("Suhu bedengan cocok untuk fase awal pertumbuhan.");
+    }
+
+    els.fitScore.textContent = `${clamp(score, 0, 99)}%`;
+    els.soilAdvice.textContent = advice.join(" ");
+    els.analysisSoilText.textContent = els.soilAdvice.textContent;
+}
+
+function renderCompanions(plan) {
+    els.companionList.innerHTML = plan.crop.companions.map((item, index) => `
+        <button class="companion-chip" type="button" data-companion="${index}" aria-pressed="${state.selectedCompanion === index}">
+            <i class="ph ${item.type === "refugia" ? "ph-flower-lotus" : item.type === "ground" ? "ph-leaf" : "ph-flower"}"></i>
+            <span>
+                <strong>${item.name}</strong>
+                <small>${item.note}</small>
+            </span>
+            <em>${item.role}</em>
+        </button>
+    `).join("");
+
+    qsa("[data-companion]").forEach((button) => {
+        const isActive = Number(button.dataset.companion) === state.selectedCompanion;
+        button.style.background = isActive ? "var(--leaf-700)" : "var(--leaf-100)";
+        button.style.color = isActive ? "var(--paper)" : "var(--leaf-800)";
+        button.addEventListener("click", () => {
+            state.selectedCompanion = Number(button.dataset.companion);
+            renderAll();
+        });
     });
 }
 
-// Event Listeners for Bed Management
-if (addBedBtn) {
-    addBedBtn.addEventListener('click', () => {
-        currentPingSession = [];
-        updatePingUI();
-        pingModal.style.display = 'flex';
+function getPlotSize(plan) {
+    const shell = qs(".plot-shell");
+    const availableW = Math.max(260, (shell?.clientWidth || 520) - 70);
+    const availableH = Math.max(260, (shell?.clientHeight || 430) - 70);
+    const ratio = plan.widthM / plan.lengthM;
+    let width = availableW;
+    let height = width / ratio;
+
+    if (height > availableH) {
+        height = availableH;
+        width = height * ratio;
+    }
+
+    return {
+        width: Math.max(220, width),
+        height: Math.max(220, height)
+    };
+}
+
+function plantDotClass(type) {
+    if (type === "refugia") return "plant-dot refugia";
+    if (type === "ground") return "plant-dot ground";
+    if (type === "companion") return "plant-dot companion";
+    return "plant-dot primary";
+}
+
+function renderPlot(plan) {
+    const companion = plan.crop.companions[state.selectedCompanion] || plan.crop.companions[0];
+    const plotSize = getPlotSize(plan);
+    const meterSize = plotSize.height / plan.lengthM;
+    const dotSize = clamp(Math.min(plotSize.width / plan.cols, plotSize.height / plan.rows) * 0.44, 7, 18);
+    const maxVisiblePrimary = 800;
+    const primaryStride = Math.max(1, Math.ceil(plan.primaryCount / maxVisiblePrimary));
+    let dotIndex = 0;
+    const dots = [];
+
+    els.plantingPlot.style.setProperty("--plot-w", `${plotSize.width}px`);
+    els.plantingPlot.style.setProperty("--plot-h", `${plotSize.height}px`);
+    els.plantingPlot.style.setProperty("--meter-size", `${meterSize}px`);
+    els.plantingPlot.style.setProperty("--dot-size", `${dotSize}px`);
+
+    for (let row = 0; row < plan.rows; row += 1) {
+        for (let col = 0; col < plan.cols; col += 1) {
+            dotIndex += 1;
+            if (dotIndex % primaryStride !== 0) continue;
+
+            const isEdge = row === 0 || col === 0 || row === plan.rows - 1 || col === plan.cols - 1;
+            const isCompanionPocket = isEdge && (row + col) % 3 === 0;
+            const isGroundPocket = !isEdge && (row + col) % 11 === 0 && companion.type === "ground";
+            const type = isCompanionPocket ? companion.type : isGroundPocket ? "ground" : "primary";
+            const left = plan.cols === 1 ? 50 : (col / (plan.cols - 1)) * 92 + 4;
+            const top = plan.rows === 1 ? 50 : (row / (plan.rows - 1)) * 92 + 4;
+
+            dots.push(`<span class="${plantDotClass(type)}" style="left:${left}%;top:${top}%;" title="${type === "primary" ? plan.crop.name : companion.name}"></span>`);
+        }
+    }
+
+    els.plantingPlot.innerHTML = dots.join("");
+    els.totalPlants.textContent = formatNumber(plan.primaryCount + plan.companionCount);
+    els.actualSpacing.textContent = `${plan.actualSpacing[0]} x ${plan.actualSpacing[1]} cm`;
+    els.yieldEstimate.textContent = `${formatNumber(plan.yieldEstimate, 1)} kg`;
+    els.plotWidthLabel.textContent = `${plan.widthM} m`;
+    els.plotLengthLabel.textContent = `${plan.lengthM} m`;
+    els.scalePill.textContent = `${formatNumber(plan.widthM * plan.lengthM, 1)} m2 area`;
+    els.analysisPlantText.textContent = `Jarak database ${plan.baseSpacing[0]} x ${plan.baseSpacing[1]} cm disesuaikan menjadi ${plan.actualSpacing[0]} x ${plan.actualSpacing[1]} cm untuk target ${formatNumber(plan.targetYield)} kg.`;
+
+    els.legendRow.innerHTML = `
+        <span class="legend-item"><span class="legend-swatch" style="background:var(--leaf-600)"></span>${plan.crop.name}</span>
+        <span class="legend-item"><span class="legend-swatch" style="background:${companion.type === "refugia" ? "#f59fb4" : companion.type === "ground" ? "#77c78a" : "var(--sun)"}"></span>${companion.name}</span>
+        <span class="legend-item">Aktual: ${plan.rows} baris x ${plan.cols} kolom</span>
+    `;
+}
+
+function renderAll() {
+    const plan = calculatePlan();
+    renderCropProfile(plan);
+    renderSensorAndAdvice(plan);
+    renderCompanions(plan);
+    renderPlot(plan);
+}
+
+function showSection(sectionName) {
+    qsa(".content-section").forEach((section) => {
+        section.hidden = section.id !== `${sectionName}Section`;
+    });
+    qsa(".rail-link").forEach((link) => {
+        link.classList.toggle("active", link.dataset.section === sectionName);
     });
 }
 
-if (cancelPingBtn) {
-    cancelPingBtn.addEventListener('click', () => {
-        pingModal.style.display = 'none';
+function setupNavigation() {
+    qsa(".rail-link").forEach((link) => {
+        link.addEventListener("click", (event) => {
+            event.preventDefault();
+            showSection(link.dataset.section);
+        });
     });
-}
 
-if (recordPingLiveBtn) {
-    recordPingLiveBtn.addEventListener('click', () => {
-        if (!latestSensorData || !latestGpsData) {
-            alert("Data sensor atau GPS live belum tersedia. Tunggu perangkat fisik (Hardware) mengirim data melalui MQTT.");
+    qsa(".step-tab").forEach((tab) => {
+        tab.addEventListener("click", () => setStep(Number(tab.dataset.step)));
+    });
+
+    els.prevStep.addEventListener("click", () => setStep(state.step - 1));
+    els.nextStep.addEventListener("click", () => {
+        if (state.step === stepTitles.length - 1) {
+            qs("#plannerMapSection").scrollIntoView({ behavior: "smooth", block: "start" });
             return;
         }
-        
-        const pingData = {
-            id: currentPingSession.length + 1,
-            timestamp: new Date().toLocaleTimeString(),
-            temp: latestSensorData.temp_air,
-            hum: latestSensorData.hum_air,
-            soilHum: latestSensorData.hum_soil,
-            ph: latestSensorData.ph_soil,
-            lat: latestGpsData.lat,
-            long: latestGpsData.long
-        };
-        
-        currentPingSession.push(pingData);
-        updatePingUI();
+        setStep(state.step + 1);
+    });
+    els.focusMapBtn.addEventListener("click", () => {
+        qs("#plannerMapSection").scrollIntoView({ behavior: "smooth", block: "start" });
     });
 }
 
-if (recordPingDemoBtn) {
-    recordPingDemoBtn.addEventListener('click', () => {
-        // Titik pusat awal (contoh: lahan utama)
-        const baseLat = -6.200000;
-        const baseLong = 106.816666;
-        
-        // Tentukan bentuk bangun datar berdasarkan jumlah bedeng yang sudah ada
-        // (selang-seling antara Kotak(4), Segi Lima(5), dan Segi Enam(6))
-        const sides = beds.length % 3 === 0 ? 4 : (beds.length % 3 === 1 ? 5 : 6); 
-        const radius = 0.0008; // Jarak dari titik tengah ke sudut bangun datar
-        
-        const pingIndex = currentPingSession.length;
-        
-        // Hitung sudut (angle) untuk titik sudut bangun datar yang sedang digambar
-        // Jika user melakukan ping lebih dari jumlah sudut (misal 5 kali ping di kotak), titik akan kembali ke awal (loop).
-        const angle = (Math.PI * 2 * pingIndex) / sides;
-        
-        // Tambahkan pergeseran (offset) antar-bedeng agar bedeng baru tidak menimpa bedeng lama di peta
-        const bedShiftX = (beds.length % 3) * 0.002;
-        const bedShiftY = Math.floor(beds.length / 3) * 0.002;
-        
-        // Kalkulasi posisi persis menggunakan trigonometri
-        const offsetLat = Math.cos(angle) * radius + bedShiftY;
-        const offsetLong = Math.sin(angle) * radius + bedShiftX;
-        
-        const pingData = {
-            id: currentPingSession.length + 1,
-            timestamp: new Date().toLocaleTimeString(),
-            temp: 24.0 + (Math.random() * 6), // 24 to 30
-            hum: 50.0 + (Math.random() * 30), // 50 to 80
-            soilHum: 40.0 + (Math.random() * 40), // 40 to 80
-            ph: 5.0 + (Math.random() * 2.5), // 5.0 to 7.5
-            lat: baseLat + offsetLat,
-            long: baseLong + offsetLong
-        };
-        
-        currentPingSession.push(pingData);
-        updatePingUI();
+function setupFormListeners() {
+    [els.primaryCrop, els.bedLength, els.bedWidth, els.targetYield].forEach((input) => {
+        input.addEventListener("input", renderAll);
+        input.addEventListener("change", renderAll);
+    });
+
+    window.addEventListener("resize", () => {
+        window.requestAnimationFrame(() => renderPlot(calculatePlan()));
     });
 }
 
-if (finishBedBtn) {
-    finishBedBtn.addEventListener('click', () => {
-        if (currentPingSession.length < 3) return;
-        
-        // Calculate summary
-        let sumTemp = 0, sumHum = 0, sumSoil = 0, sumPh = 0;
-        currentPingSession.forEach(p => {
-            sumTemp += p.temp;
-            sumHum += p.hum;
-            sumSoil += p.soilHum;
-            sumPh += p.ph;
-        });
-        
-        const count = currentPingSession.length;
-        const bedSummary = {
-            avgTemp: +(sumTemp / count).toFixed(1),
-            avgHum: +(sumHum / count).toFixed(1),
-            avgSoil: +(sumSoil / count).toFixed(1),
-            avgPh: +(sumPh / count).toFixed(1)
-        };
-        
-        const newBed = {
-            id: beds.length + 1,
-            name: `Bedeng ${beds.length + 1}`,
-            pings: [...currentPingSession],
-            summary: bedSummary
-        };
-        
-        beds.push(newBed);
-        pingModal.style.display = 'none';
-        
-        renderBedList();
-        renderMap();
-    });
-}
+function setupMQTT() {
+    if (typeof mqtt === "undefined") return;
 
-function updatePingUI() {
-    pingCountEl.innerText = currentPingSession.length;
-    
-    pingListEl.innerHTML = '';
-    currentPingSession.forEach(p => {
-        const li = document.createElement('li');
-        li.style.borderBottom = '1px dashed #e2e8f0';
-        li.style.paddingBottom = '0.5rem';
-        li.innerHTML = `<strong>Ping #${p.id}</strong> (${p.timestamp}) - GPS: ${p.lat.toFixed(5)}, ${p.long.toFixed(5)} <br> <span style="color:var(--text-muted)">Suhu: ${p.temp.toFixed(1)}°C, pH: ${p.ph.toFixed(1)}</span>`;
-        pingListEl.appendChild(li);
+    const client = mqtt.connect("wss://broker.emqx.io:8084/mqtt", {
+        clientId: `poli_polyfarm_${Math.random().toString(16).slice(2)}`,
+        keepalive: 60,
+        clean: true,
+        reconnectPeriod: 2500,
+        connectTimeout: 6000
     });
-    
-    if (currentPingSession.length >= 3) {
-        finishBedBtn.disabled = false;
-        finishBedBtn.style.opacity = '1';
-    } else {
-        finishBedBtn.disabled = true;
-        finishBedBtn.style.opacity = '0.5';
-    }
-}
 
-// Global update hook for MQTT data
-function updateLiveSensorView(sensor, gps) {
-    if (sensor && sensor.temp_air !== undefined) latestSensorData = sensor;
-    if (gps && gps.lat !== undefined) latestGpsData = gps;
-    
-    if (pingModal && pingModal.style.display === 'flex' && latestSensorData && latestGpsData) {
-        liveSensorDataEl.innerHTML = `
-            <strong>Data Sensor Tersedia:</strong><br>
-            Suhu: <strong>${latestSensorData.temp_air.toFixed(1)}°C</strong> | pH: <strong>${latestSensorData.ph_soil.toFixed(1)}</strong><br>
-            Kel. Udara: <strong>${latestSensorData.hum_air.toFixed(1)}%</strong> | Kel. Tanah: <strong>${latestSensorData.hum_soil.toFixed(1)}%</strong><br>
-            GPS: <strong>${latestGpsData.lat.toFixed(6)}, ${latestGpsData.long.toFixed(6)}</strong>
-        `;
-    }
-}
-
-function renderBedList() {
-    if(!bedListEl) return;
-    bedListEl.innerHTML = '';
-    beds.forEach((bed, index) => {
-        const card = document.createElement('div');
-        card.className = 'bed-card';
-        card.innerHTML = `
-            <div class="bed-card-header">
-                <div class="bed-card-title"><i class="ph ph-bounding-box" style="color: var(--primary-green);"></i> ${bed.name}</div>
-                <span class="sensor-type" style="background: var(--primary-light); color: var(--primary-dark); border: 1px solid rgba(22,163,74,0.3);">${bed.pings.length} Titik</span>
-            </div>
-            <div class="bed-card-stats">
-                <div class="stat-item"><i class="ph ph-thermometer" style="color: var(--accent-brown);"></i> ${bed.summary.avgTemp}°C</div>
-                <div class="stat-item"><i class="ph ph-drop" style="color: var(--accent-blue);"></i> ${bed.summary.avgHum}%</div>
-                <div class="stat-item"><i class="ph ph-waves" style="color: var(--primary-green);"></i> ${bed.summary.avgSoil}%</div>
-                <div class="stat-item"><i class="ph ph-flask" style="color: var(--accent-purple);"></i> pH ${bed.summary.avgPh}</div>
-            </div>
-            <button class="btn-primary" style="padding: 0.6rem; font-size: 0.85rem; margin-top: 0.5rem; background: var(--bg-color); color: var(--primary-green); border: 1px solid var(--primary-green);" onclick="openAnalysis(${index})">
-                <i class="ph ph-magic-wand"></i> Cek Kebutuhan Tanaman
-            </button>
-        `;
-        bedListEl.appendChild(card);
+    client.on("connect", () => {
+        els.mqttStatusIcon.style.background = "var(--leaf-600)";
+        els.mqttStatusText.textContent = "Terhubung";
+        client.subscribe("hackviet/data/sensors");
+        client.subscribe("hackviet/data/gps");
     });
-}
 
-function renderMap() {
-    if(!bedMapLayer) return;
-    bedMapLayer.innerHTML = '';
-    
-    if (beds.length === 0) {
-        if(mapInstructions) mapInstructions.style.display = 'block';
-        return;
-    }
-    
-    if(mapInstructions) mapInstructions.style.display = 'none';
-    
-    // Find min/max to establish map bounds (Scale to fit)
-    let minLat = 90, maxLat = -90, minLong = 180, maxLong = -180;
-    
-    beds.forEach(bed => {
-        bed.pings.forEach(p => {
-            if (p.lat < minLat) minLat = p.lat;
-            if (p.lat > maxLat) maxLat = p.lat;
-            if (p.long < minLong) minLong = p.long;
-            if (p.long > maxLong) maxLong = p.long;
-        });
+    client.on("error", () => {
+        els.mqttStatusIcon.style.background = "#e7b949";
+        els.mqttStatusText.textContent = "Mode demo";
     });
-    
-    // Add small padding to bounds
-    const latDiff = (maxLat - minLat) || 0.002; 
-    const longDiff = (maxLong - minLong) || 0.002;
-    
-    minLat -= latDiff * 0.2;
-    maxLat += latDiff * 0.2;
-    minLong -= longDiff * 0.2;
-    maxLong += longDiff * 0.2;
-    
-    const mapW = bedMapLayer.clientWidth;
-    const mapH = bedMapLayer.clientHeight;
-    
-    const getX = (long) => ((long - minLong) / (maxLong - minLong)) * mapW;
-    const getY = (lat) => ((maxLat - lat) / (maxLat - minLat)) * mapH; // Invert Y
-    
-    // Create SVG layer for polygons
-    const svgNS = "http://www.w3.org/2000/svg";
-    const svg = document.createElementNS(svgNS, "svg");
-    svg.style.position = "absolute";
-    svg.style.inset = "0";
-    svg.style.width = "100%";
-    svg.style.height = "100%";
-    svg.style.pointerEvents = "none"; // Let clicks pass through
-    bedMapLayer.appendChild(svg);
-    
-    beds.forEach(bed => {
-        // Draw Polygon tracing the pings
-        if (bed.pings.length >= 3) {
-            let pointsStr = "";
-            bed.pings.forEach(p => {
-                pointsStr += `${getX(p.long)},${getY(p.lat)} `;
-            });
-            
-            const polygon = document.createElementNS(svgNS, "polygon");
-            polygon.setAttribute("points", pointsStr.trim());
-            polygon.setAttribute("fill", "rgba(22, 163, 74, 0.2)");
-            polygon.setAttribute("stroke", "#16a34a"); // var(--primary-green)
-            polygon.setAttribute("stroke-width", "2");
-            polygon.style.pointerEvents = "auto";
-            polygon.style.cursor = "pointer";
-            polygon.style.transition = "fill 0.2s";
-            
-            // Hover effect
-            polygon.addEventListener("mouseenter", () => polygon.setAttribute("fill", "rgba(22, 163, 74, 0.4)"));
-            polygon.addEventListener("mouseleave", () => polygon.setAttribute("fill", "rgba(22, 163, 74, 0.2)"));
-            
-            svg.appendChild(polygon);
+
+    client.on("message", (topic, message) => {
+        try {
+            const payload = JSON.parse(message.toString());
+
+            if (topic === "hackviet/data/sensors") {
+                if (payload.ph_soil !== undefined) sensorState.ph = Number(payload.ph_soil);
+                if (payload.temp_air !== undefined) sensorState.temp = Number(payload.temp_air);
+                if (payload.hum_soil !== undefined) sensorState.moisture = Number(payload.hum_soil);
+            }
+
+            if (topic === "hackviet/data/gps") {
+                if (payload.lat !== undefined) sensorState.lat = Number(payload.lat);
+                if (payload.long !== undefined) sensorState.long = Number(payload.long);
+            }
+
+            renderAll();
+        } catch (error) {
+            console.warn("Invalid MQTT payload", error);
         }
-        
-        // Calculate Center for Label
-        let centerLat = 0, centerLong = 0;
-        bed.pings.forEach(p => { 
-            centerLat += p.lat; 
-            centerLong += p.long; 
-        });
-        centerLat /= bed.pings.length;
-        centerLong /= bed.pings.length;
-        
-        const label = document.createElement('div');
-        label.className = 'map-bed-label';
-        label.innerText = bed.name;
-        label.style.left = getX(centerLong) + 'px';
-        label.style.top = getY(centerLat) + 'px';
-        bedMapLayer.appendChild(label);
-
-        // Draw Pings as points over the box
-        bed.pings.forEach(p => {
-            const dot = document.createElement('div');
-            dot.className = 'map-point';
-            dot.style.left = getX(p.long) + 'px';
-            dot.style.top = getY(p.lat) + 'px';
-            bedMapLayer.appendChild(dot);
-        });
     });
 }
 
-// Handle window resize for map
-window.addEventListener('resize', () => {
-    if (beds.length > 0) renderMap();
+function cacheElements() {
+    Object.assign(els, {
+        primaryCrop: qs("#primaryCrop"),
+        bedLength: qs("#bedLength"),
+        bedWidth: qs("#bedWidth"),
+        targetYield: qs("#targetYield"),
+        cropProfile: qs("#cropProfile"),
+        sensorPh: qs("#sensorPh"),
+        sensorTemp: qs("#sensorTemp"),
+        sensorMoisture: qs("#sensorMoisture"),
+        sensorGps: qs("#sensorGps"),
+        fitScore: qs("#fitScore"),
+        soilAdvice: qs("#soilAdvice"),
+        companionList: qs("#companionList"),
+        plantingPlot: qs("#plantingPlot"),
+        totalPlants: qs("#totalPlants"),
+        actualSpacing: qs("#actualSpacing"),
+        yieldEstimate: qs("#yieldEstimate"),
+        plotWidthLabel: qs("#plotWidthLabel"),
+        plotLengthLabel: qs("#plotLengthLabel"),
+        scalePill: qs("#scalePill"),
+        legendRow: qs("#legendRow"),
+        stepTitle: qs("#stepTitle"),
+        currentStepNumber: qs("#currentStepNumber"),
+        progressBar: qs("#progressBar"),
+        prevStep: qs("#prevStep"),
+        nextStep: qs("#nextStep"),
+        focusMapBtn: qs("#focusMapBtn"),
+        mqttStatusIcon: qs("#mqttStatusIcon"),
+        mqttStatusText: qs("#mqttStatusText"),
+        analysisSoilText: qs("#analysisSoilText"),
+        analysisPlantText: qs("#analysisPlantText")
+    });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    cacheElements();
+    setupNavigation();
+    setupFormListeners();
+    setStep(0);
+    renderAll();
+    setupMQTT();
 });
-
-// Plant Analysis Logic
-window.openAnalysis = function(bedIndex) {
-    analyzingBedIndex = bedIndex;
-    plantSelect.value = "";
-    document.getElementById('analysisResult').style.display = 'none';
-    plantAnalysisModal.style.display = 'flex';
-};
-
-if (closeAnalysisBtn) {
-    closeAnalysisBtn.addEventListener('click', () => {
-        plantAnalysisModal.style.display = 'none';
-    });
-}
-
-if (plantSelect) {
-    plantSelect.addEventListener('change', (e) => {
-        const plantId = e.target.value;
-        const plant = plantDatabase.find(p => p.id === plantId);
-        const bed = beds[analyzingBedIndex];
-        
-        if (!plant || !bed) return;
-        
-        // Display current stats
-        document.getElementById('currentBedStats').innerHTML = `
-            Suhu: <strong>${bed.summary.avgTemp}°C</strong><br>
-            Kel. Udara: <strong>${bed.summary.avgHum}%</strong><br>
-            Kel. Tanah: <strong>${bed.summary.avgSoil}%</strong><br>
-            pH Tanah: <strong>${bed.summary.avgPh}</strong>
-        `;
-        
-        // Display ideal stats
-        document.getElementById('idealPlantStats').innerHTML = `
-            Suhu: <strong>${plant.idealTemp[0]} - ${plant.idealTemp[1]}°C</strong><br>
-            Kel. Udara: <strong>${plant.idealHum[0]} - ${plant.idealHum[1]}%</strong><br>
-            Kel. Tanah: <strong>${plant.idealSoilHum[0]} - ${plant.idealSoilHum[1]}%</strong><br>
-            pH Tanah: <strong>${plant.idealPh[0]} - ${plant.idealPh[1]}</strong>
-        `;
-        
-        // Generate Recommendation
-        let issues = [];
-        if (bed.summary.avgPh < plant.idealPh[0]) issues.push("pH terlalu asam. Tambahkan kapur dolomit.");
-        if (bed.summary.avgPh > plant.idealPh[1]) issues.push("pH terlalu basa. Tambahkan bahan organik atau belerang.");
-        
-        if (bed.summary.avgSoil < plant.idealSoilHum[0]) issues.push("Tanah terlalu kering. Perlu peningkatan frekuensi penyiraman.");
-        if (bed.summary.avgSoil > plant.idealSoilHum[1]) issues.push("Tanah terlalu basah. Perbaiki drainase lahan.");
-        
-        if (bed.summary.avgTemp > plant.idealTemp[1]) issues.push("Suhu terlalu panas. Pertimbangkan penggunaan paranet (shading net).");
-        if (bed.summary.avgTemp < plant.idealTemp[0]) issues.push("Suhu terlalu dingin. Perhatikan waktu tanam.");
-        
-        const recBox = document.getElementById('recommendationBox');
-        if (issues.length === 0) {
-            recBox.style.borderLeftColor = '#10b981';
-            recBox.style.backgroundColor = '#dcfce7';
-            recBox.innerHTML = `<strong><i class="ph ph-check-circle" style="color:#10b981;"></i> Sangat Cocok!</strong><br>Kondisi lahan saat ini sudah sesuai dengan kebutuhan ideal tanaman ${plant.name}.`;
-        } else {
-            recBox.style.borderLeftColor = '#f59e0b';
-            recBox.style.backgroundColor = '#fef3c7';
-            recBox.innerHTML = `<strong><i class="ph ph-warning" style="color:#f59e0b;"></i> Perlu Tindakan:</strong><ul style="margin-top: 0.5rem; padding-left: 1.5rem; margin-bottom: 0;">` + 
-                issues.map(i => `<li style="margin-bottom: 0.25rem;">${i}</li>`).join('') + `</ul>`;
-        }
-        
-        document.getElementById('analysisResult').style.display = 'block';
-    });
-}
-
-
-=======
->>>>>>> eb3778a78b74ef3db72db4d22c6e42b1e9805411
