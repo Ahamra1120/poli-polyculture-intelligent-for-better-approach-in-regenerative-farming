@@ -4,362 +4,281 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>POLI (Polyculture Intelligent for Better Approach in Regenerative Farming) - IoT Dashboard Pertanian</title>
+    <title>POLI PolyFarm Planner</title>
 
-    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap"
         rel="stylesheet">
 
-    <!-- Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-
-    <!-- ECharts -->
-    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
-
-    <!-- MQTT.js -->
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-    <div class="app-container">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="logo">
-                <i class="ph ph-plant"></i>
-                <span>POLI</span>
-            </div>
+    <div class="app-shell">
+        <aside class="side-rail" aria-label="Navigasi utama">
+            <a class="brand-mark" href="#dashboardSection" aria-label="POLI home">
+                <span class="brand-leaf"><i class="ph ph-plant"></i></span>
+                <span>
+                    <strong>POLI</strong>
+                    <small>PolyFarm</small>
+                </span>
+            </a>
 
-            <div class="device-selector">
-                <p class="selector-label">Perangkat Aktif</p>
-                <div class="custom-select">
-                    <select id="deviceSelect">
-                        <option value="greenhouse-1">Greenhouse 1 (Sayuran)</option>
-                        <option value="field-a">Lahan A (Padi)</option>
-                        <option value="orchard-b">Kebun B (Buah)</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="gps-info"
-                style="margin-bottom: 1.5rem; background: var(--bg-color); padding: 1rem; border-radius: 12px; border: 1px solid rgba(22, 163, 74, 0.2);">
-                <p class="selector-label" style="display: flex; align-items: center; gap: 0.5rem;"><i
-                        class="ph ph-map-pin"></i> Lokasi GPS</p>
-                <div class="data-value" style="font-size: 0.85rem; color: var(--text-main); line-height: 1.6;">
-                    Lat: <span id="gpsLat">-</span><br>
-                    Long: <span id="gpsLong">-</span><br>
-                    <span id="gpsTime"
-                        style="font-size: 0.7rem; color: var(--text-muted); font-family: 'DM Sans', sans-serif;"></span>
-                </div>
-            </div>
-
-            <nav class="nav-menu">
-                <a href="#" onclick="showSection('dashboard', this)" class="nav-item active">
+            <nav class="rail-nav">
+                <a class="rail-link active" href="#dashboardSection" data-section="dashboard">
                     <i class="ph ph-squares-four"></i>
-                    <span>Dashboard</span>
+                    <span>Rencana</span>
                 </a>
-                <a href="#" onclick="showSection('analysis', this)" class="nav-item">
+                <a class="rail-link" href="#analysisSection" data-section="analysis">
                     <i class="ph ph-chart-line-up"></i>
                     <span>Analisis</span>
                 </a>
-                <a href="#" class="nav-item">
-                    <i class="ph ph-bell"></i>
-                    <span>Notifikasi</span>
-                </a>
-                <a href="#" onclick="showSection('settings', this)" class="nav-item">
-                    <i class="ph ph-gear"></i>
-                    <span>Pengaturan</span>
-                </a>
-                <a href="login.html" class="nav-item" style="margin-top: auto; color: #ef4444;">
-                    <i class="ph ph-sign-out"></i>
-                    <span>Keluar</span>
+                <a class="rail-link" href="#settingsSection" data-section="settings">
+                    <i class="ph ph-sliders-horizontal"></i>
+                    <span>Kelola</span>
                 </a>
             </nav>
 
-            <div class="connection-status">
-                <div class="status-indicator connecting" id="mqttStatusIcon"></div>
-                <span id="mqttStatusText">Menghubungkan MQTT...</span>
+            <div class="rail-card">
+                <span class="status-dot" id="mqttStatusIcon"></span>
+                <div>
+                    <small>Status sensor</small>
+                    <strong id="mqttStatusText">Mode demo</strong>
+                </div>
             </div>
         </aside>
 
-        <!-- Main Content -->
-        <main class="main-content">
-            <header class="top-header">
-                <div class="greeting">
-                    <h1 id="pageTitle">Pemantauan Lahan</h1>
-                    <p id="pageSubtitle">Pantau kondisi tanaman Anda secara real-time</p>
-                </div>
-                <div class="header-actions">
-                    <button class="icon-btn"><i class="ph ph-bell"></i></button>
-                    <div class="user-profile">
-                        <img src="https://ui-avatars.com/api/?name=Petani+Maju&background=16A34A&color=fff" alt="User">
-                    </div>
-                </div>
-            </header>
+        <main class="main-surface">
+            <section id="dashboardSection" class="content-section">
+                <header class="mobile-hero">
+                    <p class="eyebrow">PolyFarm onboarding</p>
+                    <h1>Rancang bedengan polikultur dari tanaman sampai jarak tanam.</h1>
+                    <p class="hero-copy">Pilih tanaman utama, isi luas dan target panen, lalu POLI menghitung grid tanam yang tetap menghormati skala lahan.</p>
+                </header>
 
-            <!-- Dashboard Section -->
-            <div id="dashboardSection" class="content-section">
-                <!-- Dashboard Grid -->
-                <div class="dashboard-grid">
+                <div class="flow-layout">
+                    <section class="onboarding-panel" aria-label="Onboarding PolyFarm">
+                        <div class="panel-topline">
+                            <div>
+                                <p class="eyebrow">Alur tanam</p>
+                                <h2 id="stepTitle">Isi tanaman kamu</h2>
+                            </div>
+                            <span class="step-count"><span id="currentStepNumber">1</span>/6</span>
+                        </div>
 
-                    <!-- Temperature Card -->
-                    <div class="card chart-card">
-                        <div class="card-header">
-                            <div class="card-title">
-                                <div class="icon-box green-light">
-                                    <i class="ph ph-thermometer"></i>
+                        <div class="progress-strip" aria-hidden="true">
+                            <span class="progress-bar" id="progressBar"></span>
+                        </div>
+
+                        <div class="step-tabs" role="tablist" aria-label="Tahap onboarding">
+                            <button class="step-tab active" type="button" data-step="0">
+                                <i class="ph ph-seedling"></i>
+                                <span>Tanaman</span>
+                            </button>
+                            <button class="step-tab" type="button" data-step="1">
+                                <i class="ph ph-ruler"></i>
+                                <span>Luas</span>
+                            </button>
+                            <button class="step-tab" type="button" data-step="2">
+                                <i class="ph ph-cpu"></i>
+                                <span>Sensor</span>
+                            </button>
+                            <button class="step-tab" type="button" data-step="3">
+                                <i class="ph ph-flask"></i>
+                                <span>Hasil</span>
+                            </button>
+                            <button class="step-tab" type="button" data-step="4">
+                                <i class="ph ph-flower"></i>
+                                <span>Companion</span>
+                            </button>
+                            <button class="step-tab" type="button" data-step="5">
+                                <i class="ph ph-grid-four"></i>
+                                <span>Denah</span>
+                            </button>
+                        </div>
+
+                        <div class="phone-frame">
+                            <article class="step-card active" data-step-panel="0">
+                                <div class="card-icon"><i class="ph ph-seedling"></i></div>
+                                <p class="eyebrow">Step 1</p>
+                                <h3>Isi tanaman kamu</h3>
+                                <label class="field">
+                                    <span>Tanaman utama</span>
+                                    <select id="primaryCrop">
+                                        <option value="cabai">Cabai Rawit</option>
+                                        <option value="terung">Terung Ungu</option>
+                                        <option value="jagung">Jagung</option>
+                                        <option value="padi">Padi Gogo</option>
+                                        <option value="singkong">Singkong</option>
+                                        <option value="ubi">Ubi Jalar</option>
+                                        <option value="tomat" selected>Tomat</option>
+                                        <option value="kedelai">Kedelai</option>
+                                        <option value="talas">Talas</option>
+                                    </select>
+                                </label>
+                                <div class="crop-profile" id="cropProfile"></div>
+                            </article>
+
+                            <article class="step-card" data-step-panel="1">
+                                <div class="card-icon"><i class="ph ph-ruler"></i></div>
+                                <p class="eyebrow">Step 2</p>
+                                <h3>Isi luas dan target panen</h3>
+                                <div class="field-grid">
+                                    <label class="field">
+                                        <span>Panjang bedeng (m)</span>
+                                        <input id="bedLength" type="text" inputmode="decimal" value="8">
+                                    </label>
+                                    <label class="field">
+                                        <span>Lebar bedeng (m)</span>
+                                        <input id="bedWidth" type="text" inputmode="decimal" value="4">
+                                    </label>
                                 </div>
-                                <h3>Temperatur Udara</h3>
-                            </div>
-                            <span class="sensor-type">DHT22</span>
-                        </div>
-                        <div class="chart-container" id="tempChart"></div>
-                    </div>
+                                <label class="field">
+                                    <span>Target hasil panen (kg)</span>
+                                    <input id="targetYield" type="text" inputmode="numeric" value="180">
+                                </label>
+                                <p class="hint">Target panen mengubah kepadatan tanam dalam batas aman, lalu grid di denah ikut menyesuaikan.</p>
+                            </article>
 
-                    <!-- Humidity Card -->
-                    <div class="card chart-card">
-                        <div class="card-header">
-                            <div class="card-title">
-                                <div class="icon-box blue-light">
-                                    <i class="ph ph-drop"></i>
+                            <article class="step-card" data-step-panel="2">
+                                <div class="card-icon"><i class="ph ph-cpu"></i></div>
+                                <p class="eyebrow">Step 3</p>
+                                <h3>Tancapkan alat dan tunggu konfirmasi</h3>
+                                <div class="sensor-confirmed">
+                                    <i class="ph ph-check-circle"></i>
+                                    <span>Sensor bedengan terdeteksi</span>
                                 </div>
-                                <h3>Kelembaban Udara</h3>
-                            </div>
-                            <span class="sensor-type">DHT22</span>
-                        </div>
-                        <div class="chart-container" id="humidChart"></div>
-                    </div>
-
-                    <!-- Soil Moisture Card -->
-                    <div class="card chart-card">
-                        <div class="card-header">
-                            <div class="card-title">
-                                <div class="icon-box brown-light">
-                                    <i class="ph ph-waves"></i>
+                                <div class="sensor-grid">
+                                    <span>pH <strong id="sensorPh">6.4</strong></span>
+                                    <span>Suhu <strong id="sensorTemp">26.0 C</strong></span>
+                                    <span>Lembab <strong id="sensorMoisture">64%</strong></span>
+                                    <span>GPS <strong id="sensorGps">-6.200, 106.817</strong></span>
                                 </div>
-                                <h3>Kelembaban Tanah</h3>
-                            </div>
-                            <span class="sensor-type">Soil Moisture</span>
-                        </div>
-                        <div class="chart-container" id="soilMoistureChart"></div>
-                    </div>
+                            </article>
 
-                    <!-- Soil pH Card -->
-                    <div class="card chart-card">
-                        <div class="card-header">
-                            <div class="card-title">
-                                <div class="icon-box purple-light">
-                                    <i class="ph ph-flask"></i>
+                            <article class="step-card" data-step-panel="3">
+                                <div class="card-icon"><i class="ph ph-flask"></i></div>
+                                <p class="eyebrow">Step 4</p>
+                                <h3>Hasil kondisi lahan</h3>
+                                <div class="result-meter">
+                                    <span>Skor cocok</span>
+                                    <strong id="fitScore">92%</strong>
                                 </div>
-                                <h3>pH Tanah</h3>
+                                <p id="soilAdvice" class="result-copy"></p>
+                            </article>
+
+                            <article class="step-card" data-step-panel="4">
+                                <div class="card-icon"><i class="ph ph-flower"></i></div>
+                                <p class="eyebrow">Step 5</p>
+                                <h3>Rekomendasi companion tanaman</h3>
+                                <div class="companion-list" id="companionList"></div>
+                            </article>
+
+                            <article class="step-card" data-step-panel="5">
+                                <div class="card-icon"><i class="ph ph-grid-four"></i></div>
+                                <p class="eyebrow">Step 6</p>
+                                <h3>Denah tanam skala nyata</h3>
+                                <p class="hint">Grid memakai ukuran bedeng dan jarak tanam dalam sentimeter. Titik companion ikut dihitung sebagai tanaman di dalam area.</p>
+                                <button class="ghost-action" type="button" id="focusMapBtn">
+                                    <i class="ph ph-map-trifold"></i>
+                                    Lihat denah besar
+                                </button>
+                            </article>
+                        </div>
+
+                        <div class="step-actions">
+                            <button class="ghost-action" type="button" id="prevStep">
+                                <i class="ph ph-arrow-left"></i>
+                                Kembali
+                            </button>
+                            <button class="primary-action" type="button" id="nextStep">
+                                Lanjut
+                                <i class="ph ph-arrow-right"></i>
+                            </button>
+                        </div>
+                    </section>
+
+                    <section class="planner-workbench" id="plannerMapSection" aria-label="Visualisasi area tanam">
+                        <div class="workbench-header">
+                            <div>
+                                <p class="eyebrow">Visual planting area</p>
+                                <h2>Grid tanaman skala nyata</h2>
                             </div>
-                            <span class="sensor-type">pH Sensor</span>
+                            <span class="scale-pill" id="scalePill">1 petak = 1 m</span>
                         </div>
-                        <div class="chart-container" id="phChart"></div>
-                    </div>
 
-                </div>
-
-                <!-- Historical Data (Decorative for visual fullness) -->
-                <div class="card historical-card">
-                    <div class="card-header">
-                        <h3>Tren Harian</h3>
-                        <div class="date-filter">Hari Ini</div>
-                    </div>
-                    <div class="chart-container-large" id="historyChart"></div>
-                </div>
-
-                <!-- Bed Management Section -->
-                <div class="bed-management-section" style="margin-top: 2rem;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                        <h2>Manajemen Bedengan</h2>
-                        <button id="addBedBtn" class="btn-primary" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; background: var(--primary-color); color: white; border: none; border-radius: 8px; cursor: pointer; font-family: 'DM Sans', sans-serif; font-weight: 500; transition: all 0.2s;">
-                            <i class="ph ph-plus-circle" style="font-size: 1.25rem;"></i> Tambah Bedeng
-                        </button>
-                    </div>
-
-                    <!-- Map Container -->
-                    <div class="card map-card" style="margin-bottom: 1.5rem;">
-                        <div class="card-header">
-                            <h3>Peta Lahan & Bedengan (Berdasarkan GPS Ping)</h3>
-                        </div>
-                        <div id="bedMapContainer" style="position: relative; width: 100%; height: 350px; background-color: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden; margin-top: 1rem;">
-                            <!-- Grid background for scale -->
-                            <div style="position: absolute; inset: 0; background-image: radial-gradient(#cbd5e1 1px, transparent 1px); background-size: 20px 20px; opacity: 0.5;"></div>
-                            <div id="bedMapLayer" style="position: absolute; inset: 0;"></div>
-                            <div id="mapInstructions" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: var(--text-muted); font-family: 'DM Sans', sans-serif; background: rgba(255,255,255,0.8); padding: 0.5rem 1rem; border-radius: 20px;">Belum ada bedeng. Tambahkan bedeng baru.</div>
-                        </div>
-                    </div>
-
-                    <!-- Bed List -->
-                    <div id="bedList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem;">
-                        <!-- Bed Cards will be inserted here dynamically -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- Analysis Section -->
-            <div id="analysisSection" class="content-section" style="display: none;">
-                <div class="dashboard-grid">
-                    <div class="card historical-card" style="grid-column: 1 / -1;">
-                        <div class="card-header">
-                            <h3>Tren Kelembaban Tanah Mingguan</h3>
-                            <div class="date-filter">7 Hari Terakhir</div>
-                        </div>
-                        <div class="chart-container-large" id="analysisChart1"></div>
-                    </div>
-
-                    <div class="card">
-                        <h3>Prediksi Cuaca & Dampak</h3>
-                        <p style="color: var(--text-muted); margin-top: 1rem; line-height: 1.6;">
-                            Hujan lebat diprediksi turun besok. Kami menyarankan untuk <strong>menunda penyiraman</strong> pada Lahan A untuk menghindari genangan berlebih. Suhu rata-rata akan stabil di 26°C.
-                        </p>
-                    </div>
-
-                    <div class="card">
-                        <h3>Rekomendasi Pemupukan</h3>
-                        <p style="color: var(--text-muted); margin-top: 1rem; line-height: 1.6;">
-                            pH tanah saat ini cenderung asam (6.4). Direkomendasikan untuk menaburkan kapur dolomit sekitar 200kg/hektar untuk menetralkan pH sebelum masa tanam minggu depan.
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Settings Section -->
-            <div id="settingsSection" class="content-section" style="display: none;">
-                <div class="settings-section">
-                    <h2>Profil Pengguna</h2>
-                    <div class="form-group" style="max-width: 400px; margin-top: 1rem; margin-bottom: 1rem;">
-                        <label style="display: block; margin-bottom: 0.5rem;">Nama Lengkap</label>
-                        <input type="text" class="form-input" value="Petani Maju" style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid #e2e8f0;">
-                    </div>
-                    <div class="form-group" style="max-width: 400px; margin-bottom: 1.5rem;">
-                        <label style="display: block; margin-bottom: 0.5rem;">Alamat Email</label>
-                        <input type="email" class="form-input" value="petani@POLI.com" style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid #e2e8f0;">
-                    </div>
-                    <button class="icon-btn" style="background: var(--primary-color); color: white; border-radius: 8px; padding: 0.75rem 1.5rem;">Simpan Profil</button>
-                </div>
-
-                <div class="settings-section" style="margin-top: 2rem;">
-                    <h2>Pengaturan Notifikasi Sensor</h2>
-                    
-                    <div class="setting-item" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; border-bottom: 1px solid #e2e8f0;">
-                        <div>
-                            <strong>Peringatan Suhu Tinggi</strong>
-                            <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.25rem;">Kirim SMS jika suhu di atas 35°C</p>
-                        </div>
-                        <label class="toggle-switch">
-                            <input type="checkbox" checked>
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-                    
-                    <div class="setting-item" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; border-bottom: 1px solid #e2e8f0;">
-                        <div>
-                            <strong>Peringatan Kelembaban Tanah Kritis</strong>
-                            <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.25rem;">Kirim Notifikasi Push jika tanah sangat kering (< 20%)</p>
-                        </div>
-                        <label class="toggle-switch">
-                            <input type="checkbox" checked>
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-
-                    <div class="setting-item" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 0;">
-                        <div>
-                            <strong>Laporan Harian</strong>
-                            <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.25rem;">Kirim rangkuman performa lahan via Email setiap jam 18:00</p>
-                        </div>
-                        <label class="toggle-switch">
-                            <input type="checkbox">
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-                </div>
-            </div>
-            <!-- Ping Mode Modal -->
-            <div id="pingModal" class="modal-overlay" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.75); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
-                <div class="modal-content" style="background: white; width: 90%; max-width: 500px; border-radius: 16px; padding: 2rem; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);">
-                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 1rem; margin-bottom: 1rem;">
-                        <h2 style="font-size: 1.25rem; display: flex; align-items: center; gap: 0.5rem; margin: 0;"><i class="ph ph-target" style="color: var(--primary-color);"></i> Mode Pendataan Bedeng</h2>
-                        <button id="cancelPingBtn" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted); padding: 0;"><i class="ph ph-x"></i></button>
-                    </div>
-                    
-                    <div style="margin-bottom: 1.5rem;">
-                        <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1rem; line-height: 1.5;">Silakan berjalan ke titik sudut bedeng Anda, lalu tekan "Rekam Ping". Minimal 3 ping untuk membentuk area.</p>
-                        
-                        <div style="background: #f8fafc; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; font-family: 'DM Mono', monospace; font-size: 0.85rem; border: 1px solid #e2e8f0;">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; align-items: center;">
-                                <span style="font-family: 'DM Sans', sans-serif; font-weight: 500;">Titik Ping Terekam:</span> 
-                                <strong id="pingCount" style="background: var(--primary-color); color: white; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 0.8rem;">0</strong>
+                        <div class="summary-grid">
+                            <div>
+                                <small>Total tanaman</small>
+                                <strong id="totalPlants">0</strong>
                             </div>
-                            <div id="liveSensorData" style="color: var(--text-main); margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px dashed #cbd5e1; line-height: 1.6;">
-                                Menunggu data sensor...
+                            <div>
+                                <small>Jarak aktual</small>
+                                <strong id="actualSpacing">0 x 0 cm</strong>
+                            </div>
+                            <div>
+                                <small>Estimasi panen</small>
+                                <strong id="yieldEstimate">0 kg</strong>
                             </div>
                         </div>
 
-                        <ul id="pingList" style="list-style: none; padding: 0; max-height: 150px; overflow-y: auto; font-size: 0.85rem; display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem;">
-                            <!-- Ping list items -->
-                        </ul>
-                    </div>
-
-                    <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
-                        <button id="recordPingLiveBtn" style="flex: 1; padding: 0.875rem; background: var(--primary-color); color: white; border: none; border-radius: 8px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 0.5rem; transition: background 0.2s;" title="Ambil data langsung dari sensor fisik (MQTT)">
-                            <i class="ph ph-cpu"></i> Rekam Live (Hardware)
-                        </button>
-                        <button id="recordPingDemoBtn" style="flex: 1; padding: 0.875rem; background: var(--accent-blue); color: white; border: none; border-radius: 8px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 0.5rem; transition: background 0.2s;" title="Generate data acak untuk keperluan presentasi">
-                            <i class="ph ph-magic-wand"></i> Rekam Demo (Simulasi)
-                        </button>
-                    </div>
-                    <div style="display: flex; gap: 1rem;">
-                        <button id="finishBedBtn" style="flex: 1; padding: 0.875rem; background: #10b981; color: white; border: none; border-radius: 8px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 0.5rem; transition: opacity 0.2s;" disabled style="opacity: 0.5;">
-                            <i class="ph ph-check-circle"></i> Selesai Membuat Bedeng
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Plant Recommendation Modal -->
-            <div id="plantAnalysisModal" class="modal-overlay" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.75); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
-                <div class="modal-content" style="background: white; width: 90%; max-width: 600px; border-radius: 16px; padding: 2rem; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); max-height: 90vh; overflow-y: auto;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 1rem; margin-bottom: 1rem;">
-                        <h2 style="font-size: 1.25rem; display: flex; align-items: center; gap: 0.5rem; margin: 0;"><i class="ph ph-plant" style="color: var(--primary-color);"></i> Analisis Kebutuhan Tanaman</h2>
-                        <button id="closeAnalysisBtn" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted); padding: 0;"><i class="ph ph-x"></i></button>
-                    </div>
-                    
-                    <div style="margin-bottom: 1.5rem;">
-                        <div style="margin-bottom: 1.5rem;">
-                            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--text-main);">Pilih Rencana Tanaman:</label>
-                            <select id="plantSelect" style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid #cbd5e1; font-family: 'DM Sans', sans-serif; color: var(--text-main); outline: none; transition: border-color 0.2s;">
-                                <option value="" disabled selected>-- Pilih Tanaman --</option>
-                                <!-- Populated via JS -->
-                            </select>
+                        <div class="plot-shell">
+                            <div class="plot-ruler horizontal" id="plotWidthLabel">4 m</div>
+                            <div class="plot-ruler vertical" id="plotLengthLabel">8 m</div>
+                            <div class="planting-plot" id="plantingPlot" aria-label="Denah tanaman"></div>
                         </div>
 
-                        <div id="analysisResult" style="display: none;">
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
-                                <div style="background: #f8fafc; padding: 1rem; border-radius: 8px; border: 1px solid #e2e8f0;">
-                                    <h4 style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.25rem;"><i class="ph ph-chart-bar"></i> Kondisi Lahan Saat Ini</h4>
-                                    <div id="currentBedStats" style="font-family: 'DM Mono', monospace; font-size: 0.85rem; line-height: 1.8; color: var(--text-main);"></div>
-                                </div>
-                                <div style="background: #f0fdf4; padding: 1rem; border-radius: 8px; border: 1px solid #bbf7d0;">
-                                    <h4 style="font-size: 0.85rem; color: #16a34a; margin-top: 0; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.25rem;"><i class="ph ph-target"></i> Kebutuhan Ideal</h4>
-                                    <div id="idealPlantStats" style="font-family: 'DM Mono', monospace; font-size: 0.85rem; line-height: 1.8; color: var(--text-main);"></div>
-                                </div>
-                            </div>
-                            
-                            <div id="recommendationBox" style="padding: 1.25rem; border-radius: 8px; border-left: 4px solid var(--primary-color); background: #f8fafc; font-size: 0.9rem; line-height: 1.6; color: var(--text-main);">
-                                <!-- AI/Logic generated recommendation -->
-                            </div>
-                        </div>
+                        <div class="legend-row" id="legendRow"></div>
+                    </section>
+                </div>
+            </section>
+
+            <section id="analysisSection" class="content-section" hidden>
+                <div class="analysis-board">
+                    <div>
+                        <p class="eyebrow">Ringkasan</p>
+                        <h1>Analisis bedengan</h1>
+                        <p>Data sensor demo dan hasil perhitungan tanam digabungkan untuk memberi saran tanah, jarak, dan companion plant.</p>
+                    </div>
+                    <div class="analysis-cards">
+                        <article>
+                            <i class="ph ph-cloud-rain"></i>
+                            <h3>Cuaca</h3>
+                            <p>Hujan ringan diprediksi. Penyiraman manual bisa dikurangi pada sore hari.</p>
+                        </article>
+                        <article>
+                            <i class="ph ph-flask"></i>
+                            <h3>Tanah</h3>
+                            <p id="analysisSoilText">pH lahan masih berada di rentang aman untuk tanaman utama.</p>
+                        </article>
+                        <article>
+                            <i class="ph ph-plant"></i>
+                            <h3>Tanam</h3>
+                            <p id="analysisPlantText">Jarak tanam mengikuti target panen dan batas aman crop database.</p>
+                        </article>
                     </div>
                 </div>
-            </div>
+            </section>
 
+            <section id="settingsSection" class="content-section" hidden>
+                <div class="manage-layout">
+                    <div>
+                        <p class="eyebrow">Manage tanaman/info lain</p>
+                        <h1>Panel kelola</h1>
+                        <p>Sidebar ini mengikuti wireframe: tempat pengaturan crop, sensor, dan daftar rekomendasi yang bisa diperluas nanti.</p>
+                    </div>
+                    <div class="manage-list">
+                        <button type="button"><i class="ph ph-database"></i> Database tanaman</button>
+                        <button type="button"><i class="ph ph-broadcast"></i> Perangkat sensor</button>
+                        <button type="button"><i class="ph ph-bell"></i> Pengingat panen</button>
+                    </div>
+                </div>
+            </section>
         </main>
     </div>
 
