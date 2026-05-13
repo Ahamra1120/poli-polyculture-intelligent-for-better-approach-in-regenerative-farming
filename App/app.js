@@ -432,7 +432,6 @@ function initAnalysisChart() {
         }
     }, 100);
 }
-<<<<<<< HEAD
 
 // --- Bed Management & Plant Analysis Logic ---
 
@@ -824,5 +823,3 @@ if (plantSelect) {
 }
 
 
-=======
->>>>>>> eb3778a78b74ef3db72db4d22c6e42b1e9805411
