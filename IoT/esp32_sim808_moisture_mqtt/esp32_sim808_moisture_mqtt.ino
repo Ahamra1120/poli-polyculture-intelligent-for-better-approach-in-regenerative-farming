@@ -45,8 +45,8 @@
 #include <Adafruit_SSD1306.h>
 
 // -------------------- WiFi --------------------
-const char *WIFI_SSID = "B1225";
-const char *WIFI_PASSWORD = "12345678";
+const char *WIFI_SSID = "REDMAGIC 8S Pro";
+const char *WIFI_PASSWORD = "2000permenit";
 
 // -------------------- MQTT --------------------
 const char *MQTT_HOST = "broker.emqx.io";
