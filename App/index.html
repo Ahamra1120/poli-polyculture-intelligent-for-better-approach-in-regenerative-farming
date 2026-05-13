@@ -1,288 +1,687 @@
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>POLI PolyFarm Planner</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>PolyFarm – POLI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+  <style>
+    :root {
+      --color-background-primary:   #ffffff;
+      --color-background-secondary: #f8fafc;
+      --color-background-tertiary:  #f1f5f9;
+      --color-text-primary:   #0f172a;
+      --color-text-secondary: #64748b;
+      --color-text-tertiary:  #94a3b8;
+      --color-border-primary:   #e2e8f0;
+      --color-border-secondary: #e2e8f0;
+      --color-border-tertiary:  #f1f5f9;
+      --border-radius-lg: 16px;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:'DM Sans',sans-serif;
+      background:#e8f0e8;
+      min-height:100vh;
+      display:flex;
+      align-items:flex-start;
+      justify-content:center;
+      padding:24px 0 40px;
+    }
+    @media(max-width:430px){
+      body{padding:0;background:#fff}
+      .phone{border-radius:0!important;border:none!important;min-height:100vh!important;max-width:100%!important}
+    }
+    .phone{
+      width:100%;max-width:390px;
+      background:var(--color-background-primary);
+      border:1.5px solid #c8d5c8;
+      border-radius:44px;
+      overflow:hidden;
+      display:flex;flex-direction:column;
+      min-height:760px;
+      box-shadow:0 20px 60px rgba(8,80,65,0.15);
+    }
+    .sbar{
+      height:44px;display:flex;align-items:center;
+      justify-content:space-between;padding:0 24px;
+      flex-shrink:0;font-size:12px;font-weight:600;
+    }
+    .sbar-dark{background:#085041;color:#9FE1CB}
+    .sbar-light{background:var(--color-background-primary);color:var(--color-text-secondary)}
+    .scr{flex:1;overflow-y:auto;overflow-x:hidden}
+    .scr::-webkit-scrollbar{width:3px}
+    .scr::-webkit-scrollbar-thumb{background:#9FE1CB;border-radius:3px}
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap"
-        rel="stylesheet">
+    .btn-primary{
+      width:100%;background:#085041;color:#E1F5EE;
+      border:none;border-radius:12px;padding:14px;
+      font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;
+      transition:background .2s;
+    }
+    .btn-primary:hover{background:#0a6350}
+    .btn-primary:disabled{background:var(--color-background-tertiary);color:var(--color-text-tertiary);cursor:default}
 
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    .step-label{font-size:12px;color:#0F6E56;font-weight:500;margin-bottom:3px}
+    .screen-title{font-size:24px;font-weight:700;color:var(--color-text-primary);letter-spacing:-.5px;line-height:1.2}
+    .screen-sub{font-size:14px;color:var(--color-text-secondary);margin-top:4px}
+    .ph-hdr{background:var(--color-background-primary);padding:20px 20px 16px;border-bottom:.5px solid var(--color-border-tertiary)}
 
-    <link rel="stylesheet" href="style.css">
+    .badge{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:6px}
+    .badge-ok{background:#E1F5EE;color:#085041}
+    .badge-warn{background:#FAEEDA;color:#633806}
+    .badge-err{background:#FCEBEB;color:#501313}
+
+    .bottom-nav{
+      display:flex;background:var(--color-background-primary);
+      border-top:.5px solid var(--color-border-primary);
+      padding:8px 0 20px;flex-shrink:0;
+    }
+    .bnav-item{
+      flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
+      padding:6px 0;cursor:pointer;border:none;background:none;
+      font-family:inherit;color:var(--color-text-tertiary);font-size:10px;
+      transition:color .2s;
+    }
+    .bnav-item.active{color:#0F6E56}
+    .bnav-item i{font-size:20px}
+
+    .mqtt-dot{width:7px;height:7px;border-radius:50%;display:inline-block;background:#f59e0b;margin-right:4px;vertical-align:middle}
+    .mqtt-dot.ok{background:#10b981}
+    .mqtt-dot.err{background:#ef4444}
+  </style>
 </head>
-
 <body>
-    <div class="app-shell">
-        <aside class="side-rail" aria-label="Navigasi utama">
-            <a class="brand-mark" href="#dashboardSection" aria-label="POLI home">
-                <span class="brand-leaf"><i class="ph ph-plant"></i></span>
-                <span>
-                    <strong>POLI</strong>
-                    <small>PolyFarm</small>
-                </span>
-            </a>
-
-            <nav class="rail-nav">
-                <a class="rail-link active" href="#dashboardSection" data-section="dashboard">
-                    <i class="ph ph-squares-four"></i>
-                    <span>Rencana</span>
-                </a>
-                <a class="rail-link" href="#analysisSection" data-section="analysis">
-                    <i class="ph ph-chart-line-up"></i>
-                    <span>Analisis</span>
-                </a>
-                <a class="rail-link" href="#settingsSection" data-section="settings">
-                    <i class="ph ph-sliders-horizontal"></i>
-                    <span>Kelola</span>
-                </a>
-            </nav>
-
-            <div class="rail-card">
-                <span class="status-dot" id="mqttStatusIcon"></span>
-                <div>
-                    <small>Status sensor</small>
-                    <strong id="mqttStatusText">Mode demo</strong>
-                </div>
-            </div>
-        </aside>
-
-        <main class="main-surface">
-            <section id="dashboardSection" class="content-section">
-                <header class="mobile-hero">
-                    <p class="eyebrow">PolyFarm onboarding</p>
-                    <h1>Rancang bedengan polikultur dari tanaman sampai jarak tanam.</h1>
-                    <p class="hero-copy">Pilih tanaman utama, isi luas dan target panen, lalu POLI menghitung grid tanam yang tetap menghormati skala lahan.</p>
-                </header>
-
-                <div class="flow-layout">
-                    <section class="onboarding-panel" aria-label="Onboarding PolyFarm">
-                        <div class="panel-topline">
-                            <div>
-                                <p class="eyebrow">Alur tanam</p>
-                                <h2 id="stepTitle">Isi tanaman kamu</h2>
-                            </div>
-                            <span class="step-count"><span id="currentStepNumber">1</span>/6</span>
-                        </div>
-
-                        <div class="progress-strip" aria-hidden="true">
-                            <span class="progress-bar" id="progressBar"></span>
-                        </div>
-
-                        <div class="step-tabs" role="tablist" aria-label="Tahap onboarding">
-                            <button class="step-tab active" type="button" data-step="0">
-                                <i class="ph ph-seedling"></i>
-                                <span>Tanaman</span>
-                            </button>
-                            <button class="step-tab" type="button" data-step="1">
-                                <i class="ph ph-ruler"></i>
-                                <span>Luas</span>
-                            </button>
-                            <button class="step-tab" type="button" data-step="2">
-                                <i class="ph ph-cpu"></i>
-                                <span>Sensor</span>
-                            </button>
-                            <button class="step-tab" type="button" data-step="3">
-                                <i class="ph ph-flask"></i>
-                                <span>Hasil</span>
-                            </button>
-                            <button class="step-tab" type="button" data-step="4">
-                                <i class="ph ph-flower"></i>
-                                <span>Companion</span>
-                            </button>
-                            <button class="step-tab" type="button" data-step="5">
-                                <i class="ph ph-grid-four"></i>
-                                <span>Denah</span>
-                            </button>
-                        </div>
-
-                        <div class="phone-frame">
-                            <article class="step-card active" data-step-panel="0">
-                                <div class="card-icon"><i class="ph ph-seedling"></i></div>
-                                <p class="eyebrow">Step 1</p>
-                                <h3>Isi tanaman kamu</h3>
-                                <label class="field">
-                                    <span>Tanaman utama</span>
-                                    <select id="primaryCrop">
-                                        <option value="cabai">Cabai Rawit</option>
-                                        <option value="terung">Terung Ungu</option>
-                                        <option value="jagung">Jagung</option>
-                                        <option value="padi">Padi Gogo</option>
-                                        <option value="singkong">Singkong</option>
-                                        <option value="ubi">Ubi Jalar</option>
-                                        <option value="tomat" selected>Tomat</option>
-                                        <option value="kedelai">Kedelai</option>
-                                        <option value="talas">Talas</option>
-                                    </select>
-                                </label>
-                                <div class="crop-profile" id="cropProfile"></div>
-                            </article>
-
-                            <article class="step-card" data-step-panel="1">
-                                <div class="card-icon"><i class="ph ph-ruler"></i></div>
-                                <p class="eyebrow">Step 2</p>
-                                <h3>Isi luas dan target panen</h3>
-                                <div class="field-grid">
-                                    <label class="field">
-                                        <span>Panjang bedeng (m)</span>
-                                        <input id="bedLength" type="text" inputmode="decimal" value="8">
-                                    </label>
-                                    <label class="field">
-                                        <span>Lebar bedeng (m)</span>
-                                        <input id="bedWidth" type="text" inputmode="decimal" value="4">
-                                    </label>
-                                </div>
-                                <label class="field">
-                                    <span>Target hasil panen (kg)</span>
-                                    <input id="targetYield" type="text" inputmode="numeric" value="180">
-                                </label>
-                                <p class="hint">Target panen mengubah kepadatan tanam dalam batas aman, lalu grid di denah ikut menyesuaikan.</p>
-                            </article>
-
-                            <article class="step-card" data-step-panel="2">
-                                <div class="card-icon"><i class="ph ph-cpu"></i></div>
-                                <p class="eyebrow">Step 3</p>
-                                <h3>Tancapkan alat dan tunggu konfirmasi</h3>
-                                <div class="sensor-confirmed">
-                                    <i class="ph ph-check-circle"></i>
-                                    <span>Sensor bedengan terdeteksi</span>
-                                </div>
-                                <div class="sensor-grid">
-                                    <span>pH <strong id="sensorPh">6.4</strong></span>
-                                    <span>Suhu <strong id="sensorTemp">26.0 C</strong></span>
-                                    <span>Lembab <strong id="sensorMoisture">64%</strong></span>
-                                    <span>GPS <strong id="sensorGps">-6.200, 106.817</strong></span>
-                                </div>
-                            </article>
-
-                            <article class="step-card" data-step-panel="3">
-                                <div class="card-icon"><i class="ph ph-flask"></i></div>
-                                <p class="eyebrow">Step 4</p>
-                                <h3>Hasil kondisi lahan</h3>
-                                <div class="result-meter">
-                                    <span>Skor cocok</span>
-                                    <strong id="fitScore">92%</strong>
-                                </div>
-                                <p id="soilAdvice" class="result-copy"></p>
-                            </article>
-
-                            <article class="step-card" data-step-panel="4">
-                                <div class="card-icon"><i class="ph ph-flower"></i></div>
-                                <p class="eyebrow">Step 5</p>
-                                <h3>Rekomendasi companion tanaman</h3>
-                                <div class="companion-list" id="companionList"></div>
-                            </article>
-
-                            <article class="step-card" data-step-panel="5">
-                                <div class="card-icon"><i class="ph ph-grid-four"></i></div>
-                                <p class="eyebrow">Step 6</p>
-                                <h3>Denah tanam skala nyata</h3>
-                                <p class="hint">Grid memakai ukuran bedeng dan jarak tanam dalam sentimeter. Titik companion ikut dihitung sebagai tanaman di dalam area.</p>
-                                <button class="ghost-action" type="button" id="focusMapBtn">
-                                    <i class="ph ph-map-trifold"></i>
-                                    Lihat denah besar
-                                </button>
-                            </article>
-                        </div>
-
-                        <div class="step-actions">
-                            <button class="ghost-action" type="button" id="prevStep">
-                                <i class="ph ph-arrow-left"></i>
-                                Kembali
-                            </button>
-                            <button class="primary-action" type="button" id="nextStep">
-                                Lanjut
-                                <i class="ph ph-arrow-right"></i>
-                            </button>
-                        </div>
-                    </section>
-
-                    <section class="planner-workbench" id="plannerMapSection" aria-label="Visualisasi area tanam">
-                        <div class="workbench-header">
-                            <div>
-                                <p class="eyebrow">Visual planting area</p>
-                                <h2>Grid tanaman skala nyata</h2>
-                            </div>
-                            <span class="scale-pill" id="scalePill">1 petak = 1 m</span>
-                        </div>
-
-                        <div class="summary-grid">
-                            <div>
-                                <small>Total tanaman</small>
-                                <strong id="totalPlants">0</strong>
-                            </div>
-                            <div>
-                                <small>Jarak aktual</small>
-                                <strong id="actualSpacing">0 x 0 cm</strong>
-                            </div>
-                            <div>
-                                <small>Estimasi panen</small>
-                                <strong id="yieldEstimate">0 kg</strong>
-                            </div>
-                        </div>
-
-                        <div class="plot-shell">
-                            <div class="plot-ruler horizontal" id="plotWidthLabel">4 m</div>
-                            <div class="plot-ruler vertical" id="plotLengthLabel">8 m</div>
-                            <div class="planting-plot" id="plantingPlot" aria-label="Denah tanaman"></div>
-                        </div>
-
-                        <div class="legend-row" id="legendRow"></div>
-                    </section>
-                </div>
-            </section>
-
-            <section id="analysisSection" class="content-section" hidden>
-                <div class="analysis-board">
-                    <div>
-                        <p class="eyebrow">Ringkasan</p>
-                        <h1>Analisis bedengan</h1>
-                        <p>Data sensor demo dan hasil perhitungan tanam digabungkan untuk memberi saran tanah, jarak, dan companion plant.</p>
-                    </div>
-                    <div class="analysis-cards">
-                        <article>
-                            <i class="ph ph-cloud-rain"></i>
-                            <h3>Cuaca</h3>
-                            <p>Hujan ringan diprediksi. Penyiraman manual bisa dikurangi pada sore hari.</p>
-                        </article>
-                        <article>
-                            <i class="ph ph-flask"></i>
-                            <h3>Tanah</h3>
-                            <p id="analysisSoilText">pH lahan masih berada di rentang aman untuk tanaman utama.</p>
-                        </article>
-                        <article>
-                            <i class="ph ph-plant"></i>
-                            <h3>Tanam</h3>
-                            <p id="analysisPlantText">Jarak tanam mengikuti target panen dan batas aman crop database.</p>
-                        </article>
-                    </div>
-                </div>
-            </section>
-
-            <section id="settingsSection" class="content-section" hidden>
-                <div class="manage-layout">
-                    <div>
-                        <p class="eyebrow">Manage tanaman/info lain</p>
-                        <h1>Panel kelola</h1>
-                        <p>Sidebar ini mengikuti wireframe: tempat pengaturan crop, sensor, dan daftar rekomendasi yang bisa diperluas nanti.</p>
-                    </div>
-                    <div class="manage-list">
-                        <button type="button"><i class="ph ph-database"></i> Database tanaman</button>
-                        <button type="button"><i class="ph ph-broadcast"></i> Perangkat sensor</button>
-                        <button type="button"><i class="ph ph-bell"></i> Pengingat panen</button>
-                    </div>
-                </div>
-            </section>
-        </main>
+<div class="phone" id="phone">
+  <div class="sbar" id="sbar">
+    <span id="sbar-time">9:41</span>
+    <div style="display:flex;gap:6px;align-items:center">
+      <span style="font-size:10px;display:flex;align-items:center">
+        <span class="mqtt-dot" id="mqtt-dot"></span>
+        <span id="mqtt-txt" style="font-size:9px">MQTT</span>
+      </span>
+      <i class="ti ti-wifi" style="font-size:13px"></i>
+      <i class="ti ti-battery-2" style="font-size:13px"></i>
     </div>
+  </div>
+  <div class="scr" id="scr"></div>
+  <nav class="bottom-nav" id="bottom-nav" style="display:none">
+    <button class="bnav-item active" id="bnav-dashboard" onclick="showMain('dashboard')">
+      <i class="ti ti-layout-dashboard"></i><span>Home</span>
+    </button>
+    <button class="bnav-item" id="bnav-beds" onclick="showMain('beds')">
+      <i class="ti ti-grid-dots"></i><span>Beds</span>
+    </button>
+    <button class="bnav-item" id="bnav-sensor" onclick="showMain('sensor')">
+      <i class="ti ti-activity"></i><span>Sensor</span>
+    </button>
+    <button class="bnav-item" id="bnav-settings" onclick="showMain('settings')">
+      <i class="ti ti-settings"></i><span>Settings</span>
+    </button>
+  </nav>
+</div>
 
-    <script src="app.js"></script>
+<script>
+// ─── Static data ─────────────────────────────────────────────────────────────
+const crops = [
+  {id:'tomato',  n:'Tomato',  icon:'ti-plant',   ph:'6.0–7.0', temp:'20–27°C'},
+  {id:'chili',   n:'Chili',   icon:'ti-flame',   ph:'6.0–7.0', temp:'24–28°C'},
+  {id:'eggplant',n:'Eggplant',icon:'ti-circle',  ph:'5.5–6.8', temp:'26–29°C'},
+  {id:'corn',    n:'Corn',    icon:'ti-wheat',   ph:'5.5–7.5', temp:'25–33°C'},
+  {id:'soybean', n:'Soybean', icon:'ti-leaf',    ph:'6.0–6.5', temp:'25–30°C'},
+  {id:'cucumber',n:'Cucumber',icon:'ti-refresh', ph:'6.0–7.0', temp:'22–30°C'},
+];
+const companions = [
+  {id:1, n:'Basil',   type:'Herb',     icon:'ti-plant-2',          match:98,
+   pros:['Repels whiteflies & thrips','Attracts pollinators','Improves crop vigor'],
+   cons:['Needs regular moisture','Cold sensitive']},
+  {id:2, n:'Marigold',type:'Refugia',  icon:'ti-sun',              match:94,
+   pros:['Repels root nematodes','Attracts beneficial insects','Long bloom period'],
+   cons:['Requires full sun','Can self-seed aggressively']},
+  {id:3, n:'Lettuce', type:'Companion',icon:'ti-layers-intersect', match:89,
+   pros:['Tolerates crop shade','Fast harvest 30 days','Suppresses weeds'],
+   cons:['Needs consistent moisture','Bolts in heat']},
+  {id:4, n:'Garlic',  type:'Spice',    icon:'ti-wind',             match:85,
+   pros:['Repels aphids & mites','Acts as natural fungicide','Very compact growth'],
+   cons:['Long growing season','Inhibits nearby legumes']},
+];
+const plantTypes = [
+  {t:'main',c:'#993C1D',shape:'circle', lbl:'Main crop'},
+  {t:'comp',c:'#0F6E56',shape:'diamond',lbl:'Companion'},
+  {t:'ref', c:'#BA7517',shape:'circle', lbl:'Refugia'},
+  {t:'gnd', c:'#888780',shape:'tri',    lbl:'Ground cover'},
+  {t:'herb',c:'#185FA5',shape:'circle', lbl:'Herb / spice'},
+  {t:'lcc', c:'#3B6D11',shape:'diamond',lbl:'Legume (LCC)'},
+];
+const grid = [
+  ['main','comp','ref','comp','main'],
+  ['herb','lcc','main','lcc','herb'],
+  ['comp','main','gnd','main','comp'],
+  ['ref','comp','main','comp','ref'],
+  ['main','herb','comp','herb','main'],
+  ['comp','lcc','ref','lcc','comp'],
+  ['main','comp','main','comp','main'],
+];
+const beds = [
+  {id:'A1',ph:6.2,ok:true},
+  {id:'A2',ph:5.6,ok:false,fix:'Add 150g lime / m²'},
+  {id:'A3',ph:6.8,ok:true},
+  {id:'B1',ph:7.0,ok:true},
+  {id:'B2',ph:5.3,ok:false,fix:'Add 200g lime / m²'},
+  {id:'B3',ph:6.5,ok:true},
+];
+const bedPlants = [
+  {t:'main',n:'Tomato',            count:12, sp:'50×70 cm',   days:'90 days'},
+  {t:'comp',n:'Lettuce',           count:40, sp:'20×20 cm',   days:'30 days'},
+  {t:'ref', n:'Marigold',          count:8,  sp:'45×45 cm',   days:'60 days'},
+  {t:'herb',n:'Basil',             count:15, sp:'30×30 cm',   days:'45 days'},
+  {t:'lcc', n:'Mucuna bracteata',  count:6,  sp:'100×100 cm', days:'90 days'},
+  {t:'gnd', n:'Arachis pintoi',    count:20, sp:'40×40 cm',   days:'Perennial'},
+];
+
+// ─── Live sensor state (updated by MQTT) ─────────────────────────────────────
+const live = {temp_air:24.5, hum_air:65, hum_soil:45, ph_soil:6.5, lat:null, long:null, ts:null};
+
+// ─── App state ────────────────────────────────────────────────────────────────
+const st = {screen:'login', tab:'dashboard', crop:'tomato', exp:null, chosen:[], scanned:0, activeBed:'A1', q:''};
+
+// ─── MQTT ─────────────────────────────────────────────────────────────────────
+let mqttClient;
+function setupMQTT() {
+  mqttClient = mqtt.connect('wss://broker.emqx.io:8084/mqtt', {
+    clientId: 'poli_pf_' + Math.random().toString(16).substr(2,8),
+    keepalive: 60, clean: true, reconnectPeriod: 2000,
+  });
+  mqttClient.on('connect', () => {
+    setDot('ok');
+    mqttClient.subscribe('hackviet/data/sensors');
+    mqttClient.subscribe('hackviet/data/gps');
+  });
+  mqttClient.on('error', () => setDot('err'));
+  mqttClient.on('reconnect', () => setDot(''));
+  mqttClient.on('message', (topic, msg) => {
+    try {
+      const d = JSON.parse(msg.toString());
+      if (topic === 'hackviet/data/sensors') {
+        if (d.temp_air  != null) live.temp_air  = d.temp_air;
+        if (d.hum_air   != null) live.hum_air   = d.hum_air;
+        if (d.hum_soil  != null) live.hum_soil  = d.hum_soil;
+        if (d.ph_soil   != null) live.ph_soil   = d.ph_soil;
+        if (d.timestamp != null) live.ts        = d.timestamp;
+      } else if (topic === 'hackviet/data/gps') {
+        if (d.lat  != null) live.lat  = d.lat;
+        if (d.long != null) live.long = d.long;
+      }
+      if (st.screen === 'main') render();
+    } catch(e) {}
+  });
+}
+function setDot(s) {
+  const el = document.getElementById('mqtt-dot');
+  if (el) el.className = 'mqtt-dot' + (s === 'ok' ? ' ok' : s === 'err' ? ' err' : '');
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+function dot(type, sz) {
+  const p = plantTypes.find(x => x.t === type) || plantTypes[0];
+  if (p.shape === 'diamond') return `<div style="width:${sz}px;height:${sz}px;background:${p.c};transform:rotate(45deg);flex-shrink:0;border-radius:1px"></div>`;
+  if (p.shape === 'tri')     return `<div style="width:0;height:0;border-left:${sz/2}px solid transparent;border-right:${sz/2}px solid transparent;border-bottom:${sz}px solid ${p.c};flex-shrink:0"></div>`;
+  return `<div style="width:${sz}px;height:${sz}px;border-radius:50%;background:${p.c};flex-shrink:0"></div>`;
+}
+function miniGrid(rows) {
+  return grid.slice(0, rows).map(row =>
+    `<div style="display:flex;gap:4px;align-items:center">${row.map(t => dot(t, 8)).join('')}</div>`
+  ).join('');
+}
+function f1(v) { return parseFloat(v).toFixed(1); }
+
+// ─── Screen renderers ─────────────────────────────────────────────────────────
+function S_login() { return `
+<div style="background:#085041;min-height:100%;display:flex;flex-direction:column;padding:0 24px">
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;padding-top:48px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+      <div style="width:44px;height:44px;background:#0F6E56;border-radius:14px;display:flex;align-items:center;justify-content:center">
+        <i class="ti ti-leaf" style="font-size:22px;color:#9FE1CB"></i>
+      </div>
+      <span style="font-size:30px;font-weight:700;color:#fff;letter-spacing:-1px">PolyFarm</span>
+    </div>
+    <p style="color:#5DCAA5;font-size:14px;margin-bottom:40px;line-height:1.5">Smart polyculture,<br>guided by nature's data.</p>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px">
+      <input placeholder="Email address" style="background:rgba(255,255,255,.1);border:.5px solid rgba(255,255,255,.25);border-radius:12px;padding:14px 16px;color:#fff;font-size:14px;outline:none;font-family:inherit"/>
+      <input type="password" placeholder="Password" style="background:rgba(255,255,255,.1);border:.5px solid rgba(255,255,255,.25);border-radius:12px;padding:14px 16px;color:#fff;font-size:14px;outline:none;font-family:inherit"/>
+      <div style="text-align:right;margin-top:-4px"><span style="color:#5DCAA5;font-size:12px;font-weight:500">Forgot password?</span></div>
+    </div>
+    <button onclick="nav('crop')" style="background:#5DCAA5;color:#085041;border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">Sign in</button>
+  </div>
+  <div style="padding:20px 0 32px;text-align:center">
+    <p style="color:#5DCAA5;font-size:13px">No account? <span style="color:#fff;font-weight:600">Sign up free</span></p>
+  </div>
+</div>`; }
+
+function S_crop() {
+  const q = st.q || '';
+  const list = crops.filter(c => c.n.toLowerCase().includes(q.toLowerCase()));
+  return `
+<div style="background:var(--color-background-primary);min-height:100%">
+  <div class="ph-hdr">
+    <div class="step-label">Step 1 of 4</div>
+    <div class="screen-title">What will you grow?</div>
+    <div class="screen-sub">Select your main crop to begin</div>
+  </div>
+  <div style="padding:12px 20px">
+    <div style="display:flex;align-items:center;gap:8px;background:var(--color-background-secondary);border:.5px solid var(--color-border-tertiary);border-radius:10px;padding:10px 14px">
+      <i class="ti ti-search" style="font-size:16px;color:var(--color-text-tertiary)"></i>
+      <input oninput="st.q=this.value;render()" placeholder="Search crops..." value="${q}" style="background:none;border:none;outline:none;font-size:14px;color:var(--color-text-primary);font-family:inherit;flex:1"/>
+    </div>
+  </div>
+  <div style="padding:0 20px;display:grid;grid-template-columns:repeat(2,1fr);gap:10px">
+    ${list.map(c => {
+      const sel = st.crop === c.id;
+      return `<button onclick="st.crop='${c.id}';render()" style="background:${sel?'#E1F5EE':'var(--color-background-secondary)'};border:${sel?'1.5px solid #0F6E56':'.5px solid var(--color-border-tertiary)'};border-radius:14px;padding:14px 12px;cursor:pointer;text-align:left;position:relative">
+        ${sel?`<div style="position:absolute;top:8px;right:8px;width:18px;height:18px;background:#0F6E56;border-radius:50%;display:flex;align-items:center;justify-content:center"><i class="ti ti-check" style="font-size:11px;color:#E1F5EE"></i></div>`:''}
+        <div style="width:36px;height:36px;background:var(--color-background-primary);border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:8px;border:.5px solid var(--color-border-tertiary)">
+          <i class="ti ${c.icon}" style="font-size:20px;color:${sel?'#0F6E56':'var(--color-text-secondary)'}"></i>
+        </div>
+        <div style="font-size:14px;font-weight:600;color:var(--color-text-primary)">${c.n}</div>
+        <div style="font-size:11px;color:var(--color-text-tertiary);margin-top:2px">pH ${c.ph}</div>
+      </button>`;
+    }).join('')}
+  </div>
+  <div style="padding:16px 20px 24px">
+    <button onclick="nav('scan')" class="btn-primary">Continue <i class="ti ti-arrow-right"></i></button>
+  </div>
+</div>`; }
+
+function S_scan() {
+  const sc = st.scanned, pct = Math.round(sc / beds.length * 100);
+  return `
+<div style="background:var(--color-background-primary);min-height:100%">
+  <div class="ph-hdr">
+    <div class="step-label">Step 2 of 4</div>
+    <div class="screen-title">Scan your beds</div>
+    <div class="screen-sub">Insert sensor into each bed until OLED confirms</div>
+  </div>
+  <div style="padding:20px;display:flex;justify-content:center">
+    <div style="position:relative;width:110px;height:110px">
+      <div style="position:absolute;inset:0;border-radius:50%;border:1.5px solid #9FE1CB"></div>
+      <div style="position:absolute;inset:14px;border-radius:50%;border:1.5px solid #5DCAA5"></div>
+      <div style="position:absolute;inset:28px;border-radius:50%;background:#E1F5EE;display:flex;align-items:center;justify-content:center">
+        <i class="ti ti-leaf" style="font-size:26px;color:#0F6E56"></i>
+      </div>
+    </div>
+  </div>
+  <div style="padding:0 20px 12px">
+    <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+      <span style="font-size:13px;font-weight:500;color:var(--color-text-primary)">Scan progress</span>
+      <span style="font-size:13px;font-weight:600;color:#0F6E56">${sc}/${beds.length} beds</span>
+    </div>
+    <div style="height:5px;background:var(--color-background-secondary);border-radius:3px">
+      <div style="height:100%;background:#0F6E56;border-radius:3px;width:${pct}%;transition:width .4s ease"></div>
+    </div>
+  </div>
+  <div style="padding:0 20px;display:flex;flex-direction:column;gap:8px">
+    ${beds.map((b, i) => `
+    <div style="display:flex;align-items:center;gap:10px;background:${i<sc?'#E1F5EE':'var(--color-background-secondary)'};border-radius:10px;padding:10px 14px;border:.5px solid ${i<sc?'#9FE1CB':'var(--color-border-tertiary)'}">
+      <div style="width:30px;height:30px;border-radius:50%;background:${i<sc?'#0F6E56':'var(--color-background-primary)'};border:.5px solid ${i<sc?'#0F6E56':'var(--color-border-secondary)'};display:flex;align-items:center;justify-content:center">
+        ${i<sc?`<i class="ti ti-check" style="font-size:14px;color:#E1F5EE"></i>`:`<span style="font-size:11px;color:var(--color-text-tertiary)">${i+1}</span>`}
+      </div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:600;color:var(--color-text-primary)">Bed ${b.id}</div>
+        ${i<sc?`<div style="font-size:11px;color:#0F6E56">pH ${b.ph} detected</div>`:`<div style="font-size:11px;color:var(--color-text-tertiary)">Waiting for sensor...</div>`}
+      </div>
+      <span style="font-size:11px;font-weight:600;color:${i<sc?'#0F6E56':'var(--color-text-tertiary)'}">${i<sc?'Detected':'–'}</span>
+    </div>`).join('')}
+  </div>
+  <div style="padding:16px 20px 24px">
+    <button onclick="${sc>=beds.length?"nav('ph')":'void 0'}" class="btn-primary" ${sc<beds.length?'disabled':''}>
+      ${sc>=beds.length?'View Results <i class="ti ti-arrow-right"></i>':'Scanning...'}
+    </button>
+  </div>
+</div>`; }
+
+function S_ph() {
+  const ok = beds.filter(b => b.ok).length;
+  const avg = (beds.reduce((a, b) => a + b.ph, 0) / beds.length).toFixed(1);
+  return `
+<div style="background:var(--color-background-secondary);min-height:100%">
+  <div style="background:var(--color-background-primary);padding:20px 20px 16px;border-bottom:.5px solid var(--color-border-tertiary)">
+    <div class="step-label">Step 3 of 4</div>
+    <div class="screen-title">Soil analysis</div>
+    <div class="screen-sub">pH readings from all ${beds.length} beds</div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:12px 20px">
+    <div style="background:#E1F5EE;border-radius:10px;padding:10px;text-align:center">
+      <div style="font-size:20px;font-weight:700;color:#085041">${ok}</div>
+      <div style="font-size:10px;color:#0F6E56">Ready</div>
+    </div>
+    <div style="background:#FAEEDA;border-radius:10px;padding:10px;text-align:center">
+      <div style="font-size:20px;font-weight:700;color:#633806">${beds.length - ok}</div>
+      <div style="font-size:10px;color:#854F0B">Need care</div>
+    </div>
+    <div style="background:var(--color-background-primary);border:.5px solid var(--color-border-tertiary);border-radius:10px;padding:10px;text-align:center">
+      <div style="font-size:20px;font-weight:700;color:var(--color-text-primary)">${avg}</div>
+      <div style="font-size:10px;color:var(--color-text-secondary)">Avg pH</div>
+    </div>
+  </div>
+  <div style="padding:0 20px;display:flex;flex-direction:column;gap:8px">
+    ${beds.map(b => `
+    <div style="background:var(--color-background-primary);border-radius:12px;padding:12px 14px;border:.5px solid var(--color-border-tertiary)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:${b.ok?0:8}px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:14px;font-weight:600;color:var(--color-text-primary)">Bed ${b.id}</span>
+          <span class="badge ${b.ok?'badge-ok':'badge-warn'}">${b.ok?'Optimal':'Acidic'}</span>
+        </div>
+        <span style="font-size:20px;font-weight:700;color:${b.ok?'#085041':'#854F0B'}">${b.ph}</span>
+      </div>
+      ${!b.ok?`<div style="display:flex;align-items:center;gap:6px;background:#FAEEDA;border-radius:8px;padding:7px 10px">
+        <i class="ti ti-alert-triangle" style="font-size:13px;color:#854F0B;flex-shrink:0"></i>
+        <span style="font-size:11px;color:#633806">${b.fix}</span>
+      </div>`:''}
+    </div>`).join('')}
+  </div>
+  <div style="padding:16px 20px 24px">
+    <button onclick="nav('companion')" class="btn-primary">Find companion plants <i class="ti ti-arrow-right"></i></button>
+  </div>
+</div>`; }
+
+function S_companion() {
+  const crop = crops.find(c => c.id === st.crop) || crops[0];
+  return `
+<div style="background:var(--color-background-secondary);min-height:100%">
+  <div style="background:var(--color-background-primary);padding:20px 20px 16px;border-bottom:.5px solid var(--color-border-tertiary)">
+    <div class="step-label">Step 4 of 4</div>
+    <div class="screen-title">Companion plants</div>
+    <div style="display:flex;align-items:center;gap:6px;margin-top:6px">
+      <span style="font-size:13px;color:var(--color-text-secondary)">AI matched for</span>
+      <span style="font-size:12px;font-weight:600;color:#0F6E56;background:#E1F5EE;padding:2px 8px;border-radius:6px">
+        <i class="ti ${crop.icon}" style="font-size:13px;vertical-align:-1px"></i> ${crop.n}
+      </span>
+    </div>
+  </div>
+  <div style="padding:12px 20px;display:flex;flex-direction:column;gap:10px">
+    ${companions.map(c => {
+      const sel = st.chosen.includes(c.id), exp = st.exp === c.id;
+      return `
+    <div style="background:var(--color-background-primary);border-radius:14px;overflow:hidden;border:${sel?'1.5px solid #0F6E56':'.5px solid var(--color-border-tertiary)'}">
+      <div style="padding:12px 14px;display:flex;align-items:center;gap:10px;cursor:pointer" onclick="st.exp=st.exp===${c.id}?null:${c.id};render()">
+        <div style="width:40px;height:40px;background:#E1F5EE;border-radius:10px;display:flex;align-items:center;justify-content:center">
+          <i class="ti ${c.icon}" style="font-size:20px;color:#0F6E56"></i>
+        </div>
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:600;color:var(--color-text-primary)">${c.n}</div>
+          <div style="font-size:11px;color:var(--color-text-secondary)">${c.type}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:13px;font-weight:700;color:#3B6D11">${c.match}% match</div>
+          <i class="ti ${exp?'ti-chevron-up':'ti-chevron-down'}" style="font-size:12px;color:var(--color-text-tertiary)"></i>
+        </div>
+      </div>
+      ${exp?`<div style="padding:0 14px 12px;border-top:.5px solid var(--color-border-tertiary)">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding-top:10px">
+          <div>
+            <div style="font-size:10px;font-weight:700;color:#3B6D11;margin-bottom:6px">PROS</div>
+            ${c.pros.map(p=>`<div style="font-size:11px;color:var(--color-text-primary);margin-bottom:4px;padding-left:8px;border-left:2px solid #9FE1CB">${p}</div>`).join('')}
+          </div>
+          <div>
+            <div style="font-size:10px;font-weight:700;color:#A32D2D;margin-bottom:6px">CONS</div>
+            ${c.cons.map(p=>`<div style="font-size:11px;color:var(--color-text-primary);margin-bottom:4px;padding-left:8px;border-left:2px solid #F7C1C1">${p}</div>`).join('')}
+          </div>
+        </div>
+      </div>`:''}
+      <div style="padding:0 14px 12px">
+        <button onclick="let i=st.chosen.indexOf(${c.id});i>=0?st.chosen.splice(i,1):st.chosen.push(${c.id});render()" style="width:100%;background:${sel?'#085041':'var(--color-background-secondary)'};color:${sel?'#E1F5EE':'#0F6E56'};border:.5px solid ${sel?'#085041':'var(--color-border-secondary)'};border-radius:10px;padding:9px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit">
+          ${sel?'<i class="ti ti-check"></i> Selected':'+ Add to plan'}
+        </button>
+      </div>
+    </div>`;
+    }).join('')}
+  </div>
+  ${st.chosen.length > 0 ? `
+  <div style="padding:0 20px 24px">
+    <button onclick="nav('main')" class="btn-primary">
+      Build my beds (${st.chosen.length} chosen) <i class="ti ti-arrow-right"></i>
+    </button>
+  </div>` : ''}
+</div>`; }
+
+function T_dashboard() { return `
+<div style="background:var(--color-background-secondary);min-height:100%">
+  <div style="background:#085041;padding:20px 20px 16px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
+      <div>
+        <div style="font-size:11px;color:#5DCAA5;font-weight:500">My farm</div>
+        <div style="font-size:20px;font-weight:700;color:#fff;letter-spacing:-.5px">Pak Ahmad's Farm</div>
+      </div>
+      <i class="ti ti-bell" style="font-size:20px;color:#5DCAA5"></i>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
+      ${[
+        ['ti-thermometer', f1(live.temp_air)+'°C', 'Temp'],
+        ['ti-droplet',     f1(live.hum_air)+'%',   'Humidity'],
+        ['ti-waves',       f1(live.hum_soil)+'%',  'Soil'],
+        ['ti-flask',       f1(live.ph_soil),        'pH'],
+      ].map(([ic,v,lb]) => `
+      <div style="background:rgba(255,255,255,.12);border-radius:9px;padding:8px 4px;text-align:center">
+        <i class="ti ${ic}" style="font-size:14px;color:#5DCAA5"></i>
+        <div style="font-size:12px;font-weight:600;color:#fff;margin-top:2px">${v}</div>
+        <div style="font-size:9px;color:#5DCAA5">${lb}</div>
+      </div>`).join('')}
+    </div>
+    ${live.ts ? `<div style="font-size:10px;color:#5DCAA5;margin-top:8px;text-align:right">Updated: ${live.ts}</div>` : ''}
+  </div>
+  <div style="background:var(--color-background-primary);padding:14px 20px;border-bottom:.5px solid var(--color-border-tertiary)">
+    <div style="font-size:13px;color:var(--color-text-secondary);margin-bottom:10px">Tap a bed for details</div>
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px">
+      ${beds.map(b => `
+      <button onclick="st.activeBed='${b.id}';showMain('bed')" style="background:var(--color-background-secondary);border:.5px solid var(--color-border-tertiary);border-radius:14px;padding:12px;cursor:pointer;text-align:left">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span style="font-size:13px;font-weight:600;color:var(--color-text-primary)">Bed ${b.id}</span>
+          <span style="font-size:11px;font-weight:600;color:${b.ok?'#085041':'#854F0B'};background:${b.ok?'#E1F5EE':'#FAEEDA'};padding:2px 6px;border-radius:5px">pH ${b.ph}</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:3px;align-items:flex-start">${miniGrid(4)}</div>
+      </button>`).join('')}
+    </div>
+  </div>
+  <div style="padding:12px 20px 16px">
+    <div style="font-size:12px;font-weight:500;color:var(--color-text-tertiary);margin-bottom:8px">LEGEND</div>
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:5px">
+      ${plantTypes.map(p => `<div style="display:flex;align-items:center;gap:6px">${dot(p.t,10)}<span style="font-size:11px;color:var(--color-text-secondary)">${p.lbl}</span></div>`).join('')}
+    </div>
+  </div>
+</div>`; }
+
+function T_beds() { return `
+<div style="background:var(--color-background-secondary);min-height:100%">
+  <div class="ph-hdr">
+    <div class="screen-title">My Beds</div>
+    <div class="screen-sub">${beds.filter(b=>b.ok).length} of ${beds.length} beds ready</div>
+  </div>
+  <div style="padding:12px 20px;display:flex;flex-direction:column;gap:10px">
+    ${beds.map(b => `
+    <div style="background:var(--color-background-primary);border-radius:12px;padding:14px;border:.5px solid var(--color-border-tertiary)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:${b.ok?0:10}px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:15px;font-weight:700;color:var(--color-text-primary)">Bed ${b.id}</span>
+          <span class="badge ${b.ok?'badge-ok':'badge-warn'}">${b.ok?'Optimal':'Acidic'}</span>
+        </div>
+        <span style="font-size:22px;font-weight:700;color:${b.ok?'#085041':'#854F0B'}">${b.ph}</span>
+      </div>
+      ${!b.ok?`<div style="display:flex;align-items:center;gap:6px;background:#FAEEDA;border-radius:8px;padding:7px 10px;margin-bottom:10px">
+        <i class="ti ti-alert-triangle" style="font-size:13px;color:#854F0B;flex-shrink:0"></i>
+        <span style="font-size:11px;color:#633806">${b.fix}</span>
+      </div>`:''}
+      <button onclick="st.activeBed='${b.id}';showMain('bed')" style="width:100%;padding:8px;background:#E1F5EE;color:#085041;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">
+        View Layout <i class="ti ti-arrow-right"></i>
+      </button>
+    </div>`).join('')}
+  </div>
+</div>`; }
+
+function T_sensor() { return `
+<div style="background:var(--color-background-secondary);min-height:100%">
+  <div class="ph-hdr">
+    <div class="screen-title">Live Sensor</div>
+    <div class="screen-sub">Real-time data via MQTT</div>
+  </div>
+  <div style="padding:16px 20px;display:flex;flex-direction:column;gap:12px">
+    ${[
+      {ic:'ti-thermometer', lbl:'Air Temperature', val:f1(live.temp_air), unit:'°C', color:'#993C1D', bg:'#FAEEDA'},
+      {ic:'ti-droplet',     lbl:'Air Humidity',    val:f1(live.hum_air),  unit:'%',  color:'#185FA5', bg:'#E8F0FD'},
+      {ic:'ti-waves',       lbl:'Soil Moisture',   val:f1(live.hum_soil), unit:'%',  color:'#3B6D11', bg:'#E8F5E0'},
+      {ic:'ti-flask',       lbl:'Soil pH',         val:f1(live.ph_soil),  unit:'',   color:'#085041', bg:'#E1F5EE'},
+    ].map(m => `
+    <div style="background:var(--color-background-primary);border-radius:14px;padding:16px;border:.5px solid var(--color-border-tertiary);display:flex;align-items:center;gap:14px">
+      <div style="width:48px;height:48px;border-radius:14px;background:${m.bg};display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <i class="ti ${m.ic}" style="font-size:24px;color:${m.color}"></i>
+      </div>
+      <div style="flex:1">
+        <div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:2px">${m.lbl}</div>
+        <div style="font-size:28px;font-weight:700;color:var(--color-text-primary);font-family:'DM Mono',monospace;line-height:1">
+          ${m.val}<span style="font-size:14px;color:var(--color-text-secondary);font-weight:400">${m.unit}</span>
+        </div>
+      </div>
+    </div>`).join('')}
+    ${live.lat ? `
+    <div style="background:var(--color-background-primary);border-radius:14px;padding:16px;border:.5px solid var(--color-border-tertiary)">
+      <div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:6px"><i class="ti ti-map-pin" style="font-size:13px;vertical-align:-1px"></i> GPS Location</div>
+      <div style="font-size:13px;font-weight:600;font-family:'DM Mono',monospace;color:var(--color-text-primary)">${live.lat.toFixed(6)}, ${live.long.toFixed(6)}</div>
+    </div>` : ''}
+    <div style="background:var(--color-background-secondary);border-radius:10px;padding:12px;text-align:center;border:.5px dashed var(--color-border-primary)">
+      <div style="font-size:11px;color:var(--color-text-tertiary)">
+        Topic: <span style="font-family:'DM Mono',monospace">hackviet/data/sensors</span>
+      </div>
+      ${live.ts
+        ? `<div style="font-size:11px;color:#0F6E56;margin-top:4px">Last update: ${live.ts}</div>`
+        : `<div style="font-size:11px;color:var(--color-text-tertiary);margin-top:4px">Waiting for hardware data...</div>`}
+    </div>
+  </div>
+</div>`; }
+
+function T_settings() { return `
+<div style="background:var(--color-background-secondary);min-height:100%">
+  <div class="ph-hdr">
+    <div class="screen-title">Settings</div>
+  </div>
+  <div style="padding:16px 20px;display:flex;flex-direction:column;gap:12px">
+    <div style="background:var(--color-background-primary);border-radius:14px;padding:16px;border:.5px solid var(--color-border-tertiary)">
+      <div style="font-size:11px;font-weight:700;color:var(--color-text-tertiary);margin-bottom:12px;letter-spacing:.5px">PROFILE</div>
+      <input type="text" value="Pak Ahmad" style="width:100%;padding:12px 14px;border-radius:10px;border:.5px solid var(--color-border-primary);font-family:inherit;font-size:14px;margin-bottom:8px;outline:none;color:var(--color-text-primary)"/>
+      <input type="email" value="ahmad@polyfarm.id" style="width:100%;padding:12px 14px;border-radius:10px;border:.5px solid var(--color-border-primary);font-family:inherit;font-size:14px;outline:none;color:var(--color-text-primary)"/>
+    </div>
+    <div style="background:var(--color-background-primary);border-radius:14px;padding:16px;border:.5px solid var(--color-border-tertiary)">
+      <div style="font-size:11px;font-weight:700;color:var(--color-text-tertiary);margin-bottom:10px;letter-spacing:.5px">MQTT BROKER</div>
+      <div style="font-size:12px;font-family:'DM Mono',monospace;color:var(--color-text-primary);margin-bottom:4px">broker.emqx.io:8084 (WSS)</div>
+      <div style="font-size:11px;color:var(--color-text-tertiary)">hackviet/data/sensors<br>hackviet/data/gps</div>
+    </div>
+    <button onclick="nav('login')" style="width:100%;padding:14px;background:#FCEBEB;color:#501313;border:.5px solid #F7C1C1;border-radius:12px;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer">
+      <i class="ti ti-logout"></i> Sign Out
+    </button>
+  </div>
+</div>`; }
+
+function T_bed() {
+  const b = beds.find(x => x.id === st.activeBed) || beds[0];
+  return `
+<div style="background:var(--color-background-secondary);min-height:100%">
+  <div style="background:var(--color-background-primary);padding:16px 20px;display:flex;align-items:center;gap:10px;border-bottom:.5px solid var(--color-border-tertiary)">
+    <button onclick="showMain('dashboard')" style="width:34px;height:34px;border-radius:10px;background:var(--color-background-secondary);border:.5px solid var(--color-border-secondary);display:flex;align-items:center;justify-content:center;cursor:pointer">
+      <i class="ti ti-arrow-left" style="font-size:16px;color:var(--color-text-primary)"></i>
+    </button>
+    <div>
+      <div style="font-size:18px;font-weight:700;color:var(--color-text-primary)">Bed ${b.id}</div>
+      <div style="font-size:12px;color:var(--color-text-secondary)">pH ${b.ph} · ${b.ok?'Ready to plant':'Needs amendment'}</div>
+    </div>
+  </div>
+  <div style="background:var(--color-background-primary);margin:12px 20px;border-radius:14px;padding:14px;border:.5px solid var(--color-border-tertiary)">
+    <div style="font-size:11px;font-weight:600;color:var(--color-text-tertiary);margin-bottom:10px;letter-spacing:.5px">BED LAYOUT – 5m × 7m</div>
+    <div style="background:#E1F5EE;border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:6px;align-items:center;border:.5px solid #9FE1CB">
+      ${grid.map(row => `<div style="display:flex;gap:7px;align-items:center">${row.map(t => dot(t, 14)).join('')}</div>`).join('')}
+    </div>
+  </div>
+  <div style="padding:0 20px">
+    <div style="font-size:11px;font-weight:600;color:var(--color-text-tertiary);margin-bottom:8px;letter-spacing:.5px">PLANTS IN THIS BED</div>
+    <div style="display:flex;flex-direction:column;gap:7px">
+      ${bedPlants.map(p => `
+      <div style="background:var(--color-background-primary);border-radius:11px;padding:10px 12px;display:flex;align-items:center;gap:10px;border:.5px solid var(--color-border-tertiary)">
+        <div style="width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:var(--color-background-secondary);border:.5px solid var(--color-border-tertiary)">
+          ${dot(p.t, 12)}
+        </div>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:600;color:var(--color-text-primary)">${p.n}</div>
+          <div style="font-size:11px;color:var(--color-text-secondary)">${p.count} plants · ${p.sp}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:11px;font-weight:600;color:#0F6E56">${p.days}</div>
+          <div style="font-size:10px;color:var(--color-text-tertiary)">to harvest</div>
+        </div>
+      </div>`).join('')}
+    </div>
+  </div>
+  <div style="height:20px"></div>
+</div>`; }
+
+// ─── Navigation ───────────────────────────────────────────────────────────────
+let scanTimer = null;
+
+function nav(s) {
+  if (scanTimer) { clearInterval(scanTimer); scanTimer = null; }
+  st.screen = s; st.exp = null;
+  if (s === 'scan') {
+    st.scanned = 0;
+    render();
+    scanTimer = setInterval(() => {
+      st.scanned++;
+      render();
+      if (st.scanned >= beds.length) { clearInterval(scanTimer); scanTimer = null; }
+    }, 900);
+    return;
+  }
+  if (s === 'main') { st.tab = 'dashboard'; }
+  render();
+}
+
+function showMain(tab) {
+  st.screen = 'main'; st.tab = tab;
+  ['dashboard','beds','sensor','settings'].forEach(id => {
+    const el = document.getElementById('bnav-' + id);
+    if (el) el.className = 'bnav-item' + ((id === tab || (id === 'dashboard' && tab === 'bed')) ? ' active' : '');
+  });
+  render();
+}
+
+function render() {
+  const s = st.screen;
+  // statusbar theme
+  const sb = document.getElementById('sbar');
+  if (sb) sb.className = 'sbar ' + (s === 'login' ? 'sbar-dark' : 'sbar-light');
+  // clock
+  const tc = document.getElementById('sbar-time');
+  if (tc) { const n = new Date(); tc.textContent = n.getHours() + ':' + String(n.getMinutes()).padStart(2,'0'); }
+  // bottom nav
+  const bn = document.getElementById('bottom-nav');
+  if (bn) bn.style.display = s === 'main' ? 'flex' : 'none';
+  // content
+  const scr = document.getElementById('scr');
+  if (!scr) return;
+  const map = {login:S_login, crop:S_crop, scan:S_scan, ph:S_ph, companion:S_companion};
+  if (s in map) { scr.innerHTML = map[s](); }
+  else if (s === 'main') {
+    const t = {'dashboard':T_dashboard,'beds':T_beds,'sensor':T_sensor,'settings':T_settings,'bed':T_bed};
+    scr.innerHTML = (t[st.tab] || T_dashboard)();
+  }
+  scr.scrollTop = 0;
+}
+
+setInterval(() => {
+  const tc = document.getElementById('sbar-time');
+  if (tc) { const n = new Date(); tc.textContent = n.getHours() + ':' + String(n.getMinutes()).padStart(2,'0'); }
+}, 30000);
+
+setupMQTT();
+render();
+</script>
 </body>
-
 </html>
