@@ -278,11 +278,19 @@ function setupMQTT() {
 
                 // Update UI
                 updateCharts(deviceData[currentDevice], payload.timestamp);
+
+                if (typeof updateLiveSensorView === 'function') {
+                    updateLiveSensorView(payload, null);
+                }
             } else if (topic === 'hackviet/data/gps') {
                 // Update GPS Info UI
                 if (payload.lat !== undefined) document.getElementById('gpsLat').innerText = payload.lat.toFixed(6);
                 if (payload.long !== undefined) document.getElementById('gpsLong').innerText = payload.long.toFixed(6);
                 if (payload.timestamp !== undefined) document.getElementById('gpsTime').innerText = `Diperbarui: ${payload.timestamp}`;
+
+                if (typeof updateLiveSensorView === 'function') {
+                    updateLiveSensorView(null, payload);
+                }
             }
         } catch (e) {
             console.error('Failed to parse MQTT message:', e);
@@ -424,3 +432,397 @@ function initAnalysisChart() {
         }
     }, 100);
 }
+<<<<<<< HEAD
+
+// --- Bed Management & Plant Analysis Logic ---
+
+// State
+let beds = [];
+let currentPingSession = [];
+let latestSensorData = null;
+let latestGpsData = null;
+
+// Mock Plant Database (dapat disesuaikan dengan DATABASE TANAMAN.pdf)
+const plantDatabase = [
+    { id: 'padi', name: 'Padi', idealTemp: [25, 30], idealHum: [60, 80], idealSoilHum: [70, 90], idealPh: [5.5, 6.5] },
+    { id: 'jagung', name: 'Jagung', idealTemp: [21, 27], idealHum: [50, 70], idealSoilHum: [50, 70], idealPh: [5.8, 7.0] },
+    { id: 'tomat', name: 'Tomat', idealTemp: [20, 26], idealHum: [60, 70], idealSoilHum: [60, 80], idealPh: [6.0, 6.8] }
+];
+
+// Initialize UI elements
+const addBedBtn = document.getElementById('addBedBtn');
+const pingModal = document.getElementById('pingModal');
+const cancelPingBtn = document.getElementById('cancelPingBtn');
+const recordPingLiveBtn = document.getElementById('recordPingLiveBtn');
+const recordPingDemoBtn = document.getElementById('recordPingDemoBtn');
+const finishBedBtn = document.getElementById('finishBedBtn');
+const pingCountEl = document.getElementById('pingCount');
+const liveSensorDataEl = document.getElementById('liveSensorData');
+const pingListEl = document.getElementById('pingList');
+const bedListEl = document.getElementById('bedList');
+const bedMapLayer = document.getElementById('bedMapLayer');
+const mapInstructions = document.getElementById('mapInstructions');
+
+const plantAnalysisModal = document.getElementById('plantAnalysisModal');
+const closeAnalysisBtn = document.getElementById('closeAnalysisBtn');
+const plantSelect = document.getElementById('plantSelect');
+let analyzingBedIndex = null;
+
+if (plantSelect) {
+    // Populate Plant Select
+    plantDatabase.forEach(plant => {
+        const opt = document.createElement('option');
+        opt.value = plant.id;
+        opt.textContent = plant.name;
+        plantSelect.appendChild(opt);
+    });
+}
+
+// Event Listeners for Bed Management
+if (addBedBtn) {
+    addBedBtn.addEventListener('click', () => {
+        currentPingSession = [];
+        updatePingUI();
+        pingModal.style.display = 'flex';
+    });
+}
+
+if (cancelPingBtn) {
+    cancelPingBtn.addEventListener('click', () => {
+        pingModal.style.display = 'none';
+    });
+}
+
+if (recordPingLiveBtn) {
+    recordPingLiveBtn.addEventListener('click', () => {
+        if (!latestSensorData || !latestGpsData) {
+            alert("Data sensor atau GPS live belum tersedia. Tunggu perangkat fisik (Hardware) mengirim data melalui MQTT.");
+            return;
+        }
+        
+        const pingData = {
+            id: currentPingSession.length + 1,
+            timestamp: new Date().toLocaleTimeString(),
+            temp: latestSensorData.temp_air,
+            hum: latestSensorData.hum_air,
+            soilHum: latestSensorData.hum_soil,
+            ph: latestSensorData.ph_soil,
+            lat: latestGpsData.lat,
+            long: latestGpsData.long
+        };
+        
+        currentPingSession.push(pingData);
+        updatePingUI();
+    });
+}
+
+if (recordPingDemoBtn) {
+    recordPingDemoBtn.addEventListener('click', () => {
+        // Titik pusat awal (contoh: lahan utama)
+        const baseLat = -6.200000;
+        const baseLong = 106.816666;
+        
+        // Tentukan bentuk bangun datar berdasarkan jumlah bedeng yang sudah ada
+        // (selang-seling antara Kotak(4), Segi Lima(5), dan Segi Enam(6))
+        const sides = beds.length % 3 === 0 ? 4 : (beds.length % 3 === 1 ? 5 : 6); 
+        const radius = 0.0008; // Jarak dari titik tengah ke sudut bangun datar
+        
+        const pingIndex = currentPingSession.length;
+        
+        // Hitung sudut (angle) untuk titik sudut bangun datar yang sedang digambar
+        // Jika user melakukan ping lebih dari jumlah sudut (misal 5 kali ping di kotak), titik akan kembali ke awal (loop).
+        const angle = (Math.PI * 2 * pingIndex) / sides;
+        
+        // Tambahkan pergeseran (offset) antar-bedeng agar bedeng baru tidak menimpa bedeng lama di peta
+        const bedShiftX = (beds.length % 3) * 0.002;
+        const bedShiftY = Math.floor(beds.length / 3) * 0.002;
+        
+        // Kalkulasi posisi persis menggunakan trigonometri
+        const offsetLat = Math.cos(angle) * radius + bedShiftY;
+        const offsetLong = Math.sin(angle) * radius + bedShiftX;
+        
+        const pingData = {
+            id: currentPingSession.length + 1,
+            timestamp: new Date().toLocaleTimeString(),
+            temp: 24.0 + (Math.random() * 6), // 24 to 30
+            hum: 50.0 + (Math.random() * 30), // 50 to 80
+            soilHum: 40.0 + (Math.random() * 40), // 40 to 80
+            ph: 5.0 + (Math.random() * 2.5), // 5.0 to 7.5
+            lat: baseLat + offsetLat,
+            long: baseLong + offsetLong
+        };
+        
+        currentPingSession.push(pingData);
+        updatePingUI();
+    });
+}
+
+if (finishBedBtn) {
+    finishBedBtn.addEventListener('click', () => {
+        if (currentPingSession.length < 3) return;
+        
+        // Calculate summary
+        let sumTemp = 0, sumHum = 0, sumSoil = 0, sumPh = 0;
+        currentPingSession.forEach(p => {
+            sumTemp += p.temp;
+            sumHum += p.hum;
+            sumSoil += p.soilHum;
+            sumPh += p.ph;
+        });
+        
+        const count = currentPingSession.length;
+        const bedSummary = {
+            avgTemp: +(sumTemp / count).toFixed(1),
+            avgHum: +(sumHum / count).toFixed(1),
+            avgSoil: +(sumSoil / count).toFixed(1),
+            avgPh: +(sumPh / count).toFixed(1)
+        };
+        
+        const newBed = {
+            id: beds.length + 1,
+            name: `Bedeng ${beds.length + 1}`,
+            pings: [...currentPingSession],
+            summary: bedSummary
+        };
+        
+        beds.push(newBed);
+        pingModal.style.display = 'none';
+        
+        renderBedList();
+        renderMap();
+    });
+}
+
+function updatePingUI() {
+    pingCountEl.innerText = currentPingSession.length;
+    
+    pingListEl.innerHTML = '';
+    currentPingSession.forEach(p => {
+        const li = document.createElement('li');
+        li.style.borderBottom = '1px dashed #e2e8f0';
+        li.style.paddingBottom = '0.5rem';
+        li.innerHTML = `<strong>Ping #${p.id}</strong> (${p.timestamp}) - GPS: ${p.lat.toFixed(5)}, ${p.long.toFixed(5)} <br> <span style="color:var(--text-muted)">Suhu: ${p.temp.toFixed(1)}°C, pH: ${p.ph.toFixed(1)}</span>`;
+        pingListEl.appendChild(li);
+    });
+    
+    if (currentPingSession.length >= 3) {
+        finishBedBtn.disabled = false;
+        finishBedBtn.style.opacity = '1';
+    } else {
+        finishBedBtn.disabled = true;
+        finishBedBtn.style.opacity = '0.5';
+    }
+}
+
+// Global update hook for MQTT data
+function updateLiveSensorView(sensor, gps) {
+    if (sensor && sensor.temp_air !== undefined) latestSensorData = sensor;
+    if (gps && gps.lat !== undefined) latestGpsData = gps;
+    
+    if (pingModal && pingModal.style.display === 'flex' && latestSensorData && latestGpsData) {
+        liveSensorDataEl.innerHTML = `
+            <strong>Data Sensor Tersedia:</strong><br>
+            Suhu: <strong>${latestSensorData.temp_air.toFixed(1)}°C</strong> | pH: <strong>${latestSensorData.ph_soil.toFixed(1)}</strong><br>
+            Kel. Udara: <strong>${latestSensorData.hum_air.toFixed(1)}%</strong> | Kel. Tanah: <strong>${latestSensorData.hum_soil.toFixed(1)}%</strong><br>
+            GPS: <strong>${latestGpsData.lat.toFixed(6)}, ${latestGpsData.long.toFixed(6)}</strong>
+        `;
+    }
+}
+
+function renderBedList() {
+    if(!bedListEl) return;
+    bedListEl.innerHTML = '';
+    beds.forEach((bed, index) => {
+        const card = document.createElement('div');
+        card.className = 'bed-card';
+        card.innerHTML = `
+            <div class="bed-card-header">
+                <div class="bed-card-title"><i class="ph ph-bounding-box" style="color: var(--primary-green);"></i> ${bed.name}</div>
+                <span class="sensor-type" style="background: var(--primary-light); color: var(--primary-dark); border: 1px solid rgba(22,163,74,0.3);">${bed.pings.length} Titik</span>
+            </div>
+            <div class="bed-card-stats">
+                <div class="stat-item"><i class="ph ph-thermometer" style="color: var(--accent-brown);"></i> ${bed.summary.avgTemp}°C</div>
+                <div class="stat-item"><i class="ph ph-drop" style="color: var(--accent-blue);"></i> ${bed.summary.avgHum}%</div>
+                <div class="stat-item"><i class="ph ph-waves" style="color: var(--primary-green);"></i> ${bed.summary.avgSoil}%</div>
+                <div class="stat-item"><i class="ph ph-flask" style="color: var(--accent-purple);"></i> pH ${bed.summary.avgPh}</div>
+            </div>
+            <button class="btn-primary" style="padding: 0.6rem; font-size: 0.85rem; margin-top: 0.5rem; background: var(--bg-color); color: var(--primary-green); border: 1px solid var(--primary-green);" onclick="openAnalysis(${index})">
+                <i class="ph ph-magic-wand"></i> Cek Kebutuhan Tanaman
+            </button>
+        `;
+        bedListEl.appendChild(card);
+    });
+}
+
+function renderMap() {
+    if(!bedMapLayer) return;
+    bedMapLayer.innerHTML = '';
+    
+    if (beds.length === 0) {
+        if(mapInstructions) mapInstructions.style.display = 'block';
+        return;
+    }
+    
+    if(mapInstructions) mapInstructions.style.display = 'none';
+    
+    // Find min/max to establish map bounds (Scale to fit)
+    let minLat = 90, maxLat = -90, minLong = 180, maxLong = -180;
+    
+    beds.forEach(bed => {
+        bed.pings.forEach(p => {
+            if (p.lat < minLat) minLat = p.lat;
+            if (p.lat > maxLat) maxLat = p.lat;
+            if (p.long < minLong) minLong = p.long;
+            if (p.long > maxLong) maxLong = p.long;
+        });
+    });
+    
+    // Add small padding to bounds
+    const latDiff = (maxLat - minLat) || 0.002; 
+    const longDiff = (maxLong - minLong) || 0.002;
+    
+    minLat -= latDiff * 0.2;
+    maxLat += latDiff * 0.2;
+    minLong -= longDiff * 0.2;
+    maxLong += longDiff * 0.2;
+    
+    const mapW = bedMapLayer.clientWidth;
+    const mapH = bedMapLayer.clientHeight;
+    
+    const getX = (long) => ((long - minLong) / (maxLong - minLong)) * mapW;
+    const getY = (lat) => ((maxLat - lat) / (maxLat - minLat)) * mapH; // Invert Y
+    
+    // Create SVG layer for polygons
+    const svgNS = "http://www.w3.org/2000/svg";
+    const svg = document.createElementNS(svgNS, "svg");
+    svg.style.position = "absolute";
+    svg.style.inset = "0";
+    svg.style.width = "100%";
+    svg.style.height = "100%";
+    svg.style.pointerEvents = "none"; // Let clicks pass through
+    bedMapLayer.appendChild(svg);
+    
+    beds.forEach(bed => {
+        // Draw Polygon tracing the pings
+        if (bed.pings.length >= 3) {
+            let pointsStr = "";
+            bed.pings.forEach(p => {
+                pointsStr += `${getX(p.long)},${getY(p.lat)} `;
+            });
+            
+            const polygon = document.createElementNS(svgNS, "polygon");
+            polygon.setAttribute("points", pointsStr.trim());
+            polygon.setAttribute("fill", "rgba(22, 163, 74, 0.2)");
+            polygon.setAttribute("stroke", "#16a34a"); // var(--primary-green)
+            polygon.setAttribute("stroke-width", "2");
+            polygon.style.pointerEvents = "auto";
+            polygon.style.cursor = "pointer";
+            polygon.style.transition = "fill 0.2s";
+            
+            // Hover effect
+            polygon.addEventListener("mouseenter", () => polygon.setAttribute("fill", "rgba(22, 163, 74, 0.4)"));
+            polygon.addEventListener("mouseleave", () => polygon.setAttribute("fill", "rgba(22, 163, 74, 0.2)"));
+            
+            svg.appendChild(polygon);
+        }
+        
+        // Calculate Center for Label
+        let centerLat = 0, centerLong = 0;
+        bed.pings.forEach(p => { 
+            centerLat += p.lat; 
+            centerLong += p.long; 
+        });
+        centerLat /= bed.pings.length;
+        centerLong /= bed.pings.length;
+        
+        const label = document.createElement('div');
+        label.className = 'map-bed-label';
+        label.innerText = bed.name;
+        label.style.left = getX(centerLong) + 'px';
+        label.style.top = getY(centerLat) + 'px';
+        bedMapLayer.appendChild(label);
+
+        // Draw Pings as points over the box
+        bed.pings.forEach(p => {
+            const dot = document.createElement('div');
+            dot.className = 'map-point';
+            dot.style.left = getX(p.long) + 'px';
+            dot.style.top = getY(p.lat) + 'px';
+            bedMapLayer.appendChild(dot);
+        });
+    });
+}
+
+// Handle window resize for map
+window.addEventListener('resize', () => {
+    if (beds.length > 0) renderMap();
+});
+
+// Plant Analysis Logic
+window.openAnalysis = function(bedIndex) {
+    analyzingBedIndex = bedIndex;
+    plantSelect.value = "";
+    document.getElementById('analysisResult').style.display = 'none';
+    plantAnalysisModal.style.display = 'flex';
+};
+
+if (closeAnalysisBtn) {
+    closeAnalysisBtn.addEventListener('click', () => {
+        plantAnalysisModal.style.display = 'none';
+    });
+}
+
+if (plantSelect) {
+    plantSelect.addEventListener('change', (e) => {
+        const plantId = e.target.value;
+        const plant = plantDatabase.find(p => p.id === plantId);
+        const bed = beds[analyzingBedIndex];
+        
+        if (!plant || !bed) return;
+        
+        // Display current stats
+        document.getElementById('currentBedStats').innerHTML = `
+            Suhu: <strong>${bed.summary.avgTemp}°C</strong><br>
+            Kel. Udara: <strong>${bed.summary.avgHum}%</strong><br>
+            Kel. Tanah: <strong>${bed.summary.avgSoil}%</strong><br>
+            pH Tanah: <strong>${bed.summary.avgPh}</strong>
+        `;
+        
+        // Display ideal stats
+        document.getElementById('idealPlantStats').innerHTML = `
+            Suhu: <strong>${plant.idealTemp[0]} - ${plant.idealTemp[1]}°C</strong><br>
+            Kel. Udara: <strong>${plant.idealHum[0]} - ${plant.idealHum[1]}%</strong><br>
+            Kel. Tanah: <strong>${plant.idealSoilHum[0]} - ${plant.idealSoilHum[1]}%</strong><br>
+            pH Tanah: <strong>${plant.idealPh[0]} - ${plant.idealPh[1]}</strong>
+        `;
+        
+        // Generate Recommendation
+        let issues = [];
+        if (bed.summary.avgPh < plant.idealPh[0]) issues.push("pH terlalu asam. Tambahkan kapur dolomit.");
+        if (bed.summary.avgPh > plant.idealPh[1]) issues.push("pH terlalu basa. Tambahkan bahan organik atau belerang.");
+        
+        if (bed.summary.avgSoil < plant.idealSoilHum[0]) issues.push("Tanah terlalu kering. Perlu peningkatan frekuensi penyiraman.");
+        if (bed.summary.avgSoil > plant.idealSoilHum[1]) issues.push("Tanah terlalu basah. Perbaiki drainase lahan.");
+        
+        if (bed.summary.avgTemp > plant.idealTemp[1]) issues.push("Suhu terlalu panas. Pertimbangkan penggunaan paranet (shading net).");
+        if (bed.summary.avgTemp < plant.idealTemp[0]) issues.push("Suhu terlalu dingin. Perhatikan waktu tanam.");
+        
+        const recBox = document.getElementById('recommendationBox');
+        if (issues.length === 0) {
+            recBox.style.borderLeftColor = '#10b981';
+            recBox.style.backgroundColor = '#dcfce7';
+            recBox.innerHTML = `<strong><i class="ph ph-check-circle" style="color:#10b981;"></i> Sangat Cocok!</strong><br>Kondisi lahan saat ini sudah sesuai dengan kebutuhan ideal tanaman ${plant.name}.`;
+        } else {
+            recBox.style.borderLeftColor = '#f59e0b';
+            recBox.style.backgroundColor = '#fef3c7';
+            recBox.innerHTML = `<strong><i class="ph ph-warning" style="color:#f59e0b;"></i> Perlu Tindakan:</strong><ul style="margin-top: 0.5rem; padding-left: 1.5rem; margin-bottom: 0;">` + 
+                issues.map(i => `<li style="margin-bottom: 0.25rem;">${i}</li>`).join('') + `</ul>`;
+        }
+        
+        document.getElementById('analysisResult').style.display = 'block';
+    });
+}
+
+
+=======
+>>>>>>> eb3778a78b74ef3db72db4d22c6e42b1e9805411
