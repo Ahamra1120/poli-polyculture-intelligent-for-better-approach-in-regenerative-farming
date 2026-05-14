@@ -2,686 +2,1569 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>PolyFarm – POLI</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PolyFarm</title>
   <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
   <style>
     :root {
-      --color-background-primary:   #ffffff;
-      --color-background-secondary: #f8fafc;
-      --color-background-tertiary:  #f1f5f9;
-      --color-text-primary:   #0f172a;
-      --color-text-secondary: #64748b;
-      --color-text-tertiary:  #94a3b8;
-      --color-border-primary:   #e2e8f0;
-      --color-border-secondary: #e2e8f0;
-      --color-border-tertiary:  #f1f5f9;
-      --border-radius-lg: 16px;
+      --paper: #ffffff;
+      --wash: #f4faf6;
+      --mist: #eaf6ef;
+      --mint: #dff4e8;
+      --line: #d5e8dc;
+      --ink: #10251a;
+      --muted: #617468;
+      --leaf: #0d6b50;
+      --leaf-2: #085041;
+      --leaf-3: #134f34;
+      --yellow: #fff7d7;
+      --yellow-line: #ead680;
+      --orange: #fff0df;
+      --orange-line: #e5aa70;
+      --red: #fff0f0;
+      --red-line: #e3a0a0;
+      --shadow: 0 18px 48px rgba(8, 80, 65, .14);
+      --radius: 8px;
     }
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{
-      font-family:'DM Sans',sans-serif;
-      background:#e8f0e8;
-      min-height:100vh;
-      display:flex;
-      align-items:flex-start;
-      justify-content:center;
-      padding:24px 0 40px;
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      background:
+        linear-gradient(90deg, rgba(13, 107, 80, .045) 1px, transparent 1px),
+        linear-gradient(rgba(13, 107, 80, .045) 1px, transparent 1px),
+        #edf6f0;
+      background-size: 28px 28px;
+      color: var(--ink);
+      font-family: Avenir Next, Manrope, ui-rounded, system-ui, sans-serif;
     }
-    @media(max-width:430px){
-      body{padding:0;background:#fff}
-      .phone{border-radius:0!important;border:none!important;min-height:100vh!important;max-width:100%!important}
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    .phone {
+      width: min(100%, 430px);
+      min-height: 100vh;
+      background: var(--wash);
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      position: relative;
     }
-    .phone{
-      width:100%;max-width:390px;
-      background:var(--color-background-primary);
-      border:1.5px solid #c8d5c8;
-      border-radius:44px;
-      overflow:hidden;
-      display:flex;flex-direction:column;
-      min-height:760px;
-      box-shadow:0 20px 60px rgba(8,80,65,0.15);
+    @media (min-width: 760px) {
+      body { padding: 22px; align-items: flex-start; }
+      .phone { min-height: calc(100vh - 44px); border: 1px solid var(--line); border-radius: 28px; overflow: hidden; }
     }
-    .sbar{
-      height:44px;display:flex;align-items:center;
-      justify-content:space-between;padding:0 24px;
-      flex-shrink:0;font-size:12px;font-weight:600;
+    .statusbar {
+      height: 38px;
+      padding: 0 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--paper);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      flex: 0 0 auto;
     }
-    .sbar-dark{background:#085041;color:#9FE1CB}
-    .sbar-light{background:var(--color-background-primary);color:var(--color-text-secondary)}
-    .scr{flex:1;overflow-y:auto;overflow-x:hidden}
-    .scr::-webkit-scrollbar{width:3px}
-    .scr::-webkit-scrollbar-thumb{background:#9FE1CB;border-radius:3px}
-
-    .btn-primary{
-      width:100%;background:#085041;color:#E1F5EE;
-      border:none;border-radius:12px;padding:14px;
-      font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;
-      transition:background .2s;
+    .mqtt-dot { width: 7px; height: 7px; border-radius: 99px; background: #e7b949; display: inline-block; margin-right: 5px; }
+    .mqtt-dot.ok { background: #18a66f; }
+    .mqtt-dot.err { background: #d84949; }
+    .scr { flex: 1; overflow: auto; }
+    .scr::-webkit-scrollbar { width: 4px; }
+    .scr::-webkit-scrollbar-thumb { background: #b9d8c5; border-radius: 999px; }
+    .top {
+      background: var(--paper);
+      padding: 18px 20px 16px;
+      border-bottom: 1px solid var(--line);
     }
-    .btn-primary:hover{background:#0a6350}
-    .btn-primary:disabled{background:var(--color-background-tertiary);color:var(--color-text-tertiary);cursor:default}
-
-    .step-label{font-size:12px;color:#0F6E56;font-weight:500;margin-bottom:3px}
-    .screen-title{font-size:24px;font-weight:700;color:var(--color-text-primary);letter-spacing:-.5px;line-height:1.2}
-    .screen-sub{font-size:14px;color:var(--color-text-secondary);margin-top:4px}
-    .ph-hdr{background:var(--color-background-primary);padding:20px 20px 16px;border-bottom:.5px solid var(--color-border-tertiary)}
-
-    .badge{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:6px}
-    .badge-ok{background:#E1F5EE;color:#085041}
-    .badge-warn{background:#FAEEDA;color:#633806}
-    .badge-err{background:#FCEBEB;color:#501313}
-
-    .bottom-nav{
-      display:flex;background:var(--color-background-primary);
-      border-top:.5px solid var(--color-border-primary);
-      padding:8px 0 20px;flex-shrink:0;
+    .step { color: var(--leaf); font-size: 12px; font-weight: 800; margin-bottom: 5px; }
+    h1, h2, h3, p { margin: 0; }
+    h1 { font-size: 30px; line-height: .98; letter-spacing: -.8px; }
+    h2 { font-size: 23px; line-height: 1.05; letter-spacing: -.5px; }
+    h3 { font-size: 19px; letter-spacing: -.35px; }
+    .sub { color: var(--muted); margin-top: 7px; font-size: 14px; line-height: 1.45; }
+    .section { padding: 16px 20px 24px; }
+    .stack { display: grid; gap: 12px; }
+    .grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .panel {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 16px;
     }
-    .bnav-item{
-      flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
-      padding:6px 0;cursor:pointer;border:none;background:none;
-      font-family:inherit;color:var(--color-text-tertiary);font-size:10px;
-      transition:color .2s;
+    .soft { background: var(--mist); }
+    .field { display: grid; gap: 7px; }
+    .field label { color: var(--leaf-2); font-size: 12px; font-weight: 800; }
+    .input {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: var(--paper);
+      border-radius: var(--radius);
+      padding: 13px 12px;
+      outline: none;
+      color: var(--ink);
+      font-size: 15px;
     }
-    .bnav-item.active{color:#0F6E56}
-    .bnav-item i{font-size:20px}
-
-    .mqtt-dot{width:7px;height:7px;border-radius:50%;display:inline-block;background:#f59e0b;margin-right:4px;vertical-align:middle}
-    .mqtt-dot.ok{background:#10b981}
-    .mqtt-dot.err{background:#ef4444}
+    .input:focus { border-color: var(--leaf); box-shadow: 0 0 0 3px rgba(13, 107, 80, .12); }
+    .btn {
+      width: 100%;
+      border: 1px solid var(--leaf-2);
+      background: var(--leaf-2);
+      color: #effbf4;
+      border-radius: var(--radius);
+      min-height: 48px;
+      padding: 12px 14px;
+      font-size: 15px;
+      font-weight: 850;
+    }
+    .btn.secondary { background: var(--mist); color: var(--leaf-2); border-color: var(--line); }
+    .btn.ghost { background: var(--paper); color: var(--leaf-2); border-color: var(--line); }
+    .btn:disabled { background: #edf1ee; color: #9aa89f; border-color: #edf1ee; cursor: default; }
+    .crop-card {
+      min-height: 136px;
+      text-align: left;
+      border: 1px solid var(--line);
+      background: var(--paper);
+      border-radius: var(--radius);
+      padding: 14px;
+      position: relative;
+      overflow: hidden;
+    }
+    .crop-card.selected {
+      background: #dff5e8;
+      border: 2px solid var(--leaf);
+      padding: 13px;
+    }
+    .crop-visual {
+      position: absolute;
+      right: -8px;
+      top: -16px;
+      font-size: 76px;
+      opacity: .16;
+      transform: rotate(-8deg);
+      line-height: 1;
+    }
+    .crop-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: var(--radius);
+      display: grid;
+      place-items: center;
+      background: #edf8f1;
+      font-size: 25px;
+      margin-bottom: 26px;
+      position: relative;
+      z-index: 1;
+    }
+    .crop-card h3 { position: relative; z-index: 1; font-size: 22px; }
+    .crop-card p { position: relative; z-index: 1; margin-top: 4px; color: var(--muted); font-weight: 650; }
+    .sci { font-size: 11px; color: #829288; margin-top: 7px; line-height: 1.25; }
+    .num-control {
+      display: grid;
+      grid-template-columns: 42px minmax(0, 1fr) 42px;
+      gap: 8px;
+      align-items: center;
+    }
+    .stepper {
+      border: 1px solid var(--line);
+      background: var(--mist);
+      color: var(--leaf-2);
+      border-radius: var(--radius);
+      height: 42px;
+      font-size: 22px;
+      font-weight: 800;
+    }
+    .bed-tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; }
+    .bed-tab {
+      min-width: 58px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 9px 12px;
+      background: var(--paper);
+      color: var(--muted);
+      font-weight: 800;
+    }
+    .bed-tab.active { background: var(--leaf-2); color: white; border-color: var(--leaf-2); }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      border-radius: 999px;
+      padding: 5px 9px;
+      background: var(--mist);
+      color: var(--leaf-2);
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .metric-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .metric {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 10px;
+      background: var(--paper);
+      position: relative;
+      overflow: hidden;
+    }
+    .metric::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 5px;
+      background: linear-gradient(90deg, var(--leaf) var(--pct, 0%), transparent 0);
+      opacity: .78;
+    }
+    .metric.gauge {
+      display: grid;
+      grid-template-columns: 42px 1fr;
+      gap: 10px;
+      align-items: center;
+      min-height: 82px;
+    }
+    .meter-ring {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: conic-gradient(var(--tone, var(--leaf)) var(--pct, 0%), #e5f0e9 0);
+    }
+    .meter-ring::after {
+      content: "";
+      width: 27px;
+      height: 27px;
+      border-radius: inherit;
+      background: var(--paper);
+      border: 1px solid rgba(13, 107, 80, .08);
+    }
+    .metric strong { display: block; font-size: 19px; letter-spacing: -.4px; }
+    .metric span { display: block; margin-top: 3px; color: var(--muted); font-size: 11px; font-weight: 700; }
+    .bed-metrics {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .bed-metric {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255,255,255,.72);
+      padding: 9px;
+      position: relative;
+      overflow: hidden;
+      min-height: 62px;
+    }
+    .bed-metric::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 5px;
+      background: var(--tone, var(--leaf));
+    }
+    .bed-metric::after {
+      content: "";
+      position: absolute;
+      left: 5px;
+      right: 0;
+      bottom: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--tone, var(--leaf)) var(--pct, 0%), transparent 0);
+      opacity: .75;
+    }
+    .bed-metric b { display: block; font-size: 16px; letter-spacing: -.3px; color: var(--ink); }
+    .bed-metric span { display: block; margin-top: 4px; color: var(--muted); font-size: 10px; font-weight: 850; }
+    .band-white { background: var(--paper); border-color: var(--line); color: var(--leaf-2); }
+    .band-yellow { background: var(--yellow); border-color: var(--yellow-line); color: #76580a; }
+    .band-orange { background: var(--orange); border-color: var(--orange-line); color: #85460f; }
+    .band-red { background: var(--red); border-color: var(--red-line); color: #8b2525; }
+    .scan-ring {
+      width: 124px;
+      height: 124px;
+      border-radius: 999px;
+      margin: 12px auto 18px;
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(circle at center, var(--mint) 0 34%, transparent 35%),
+        conic-gradient(var(--leaf) var(--scan), #dcece2 0);
+    }
+    .scan-ring span {
+      width: 76px;
+      height: 76px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      background: var(--paper);
+      color: var(--leaf-2);
+      font-size: 30px;
+    }
+    .progress {
+      height: 7px;
+      border-radius: 999px;
+      background: #e4eee8;
+      overflow: hidden;
+    }
+    .progress span { display: block; height: 100%; background: var(--leaf); width: var(--w); border-radius: inherit; transition: width .25s ease; }
+    .comp-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--paper);
+      padding: 14px;
+      position: relative;
+      overflow: hidden;
+    }
+    .comp-card.selected { border: 2px solid var(--leaf); padding: 13px; }
+    .comp-head { display: grid; grid-template-columns: 58px 1fr auto; gap: 12px; align-items: center; }
+    .comp-icon {
+      width: 58px;
+      height: 58px;
+      border-radius: var(--radius);
+      display: grid;
+      place-items: center;
+      background: var(--mist);
+      font-size: 30px;
+    }
+    .match { color: var(--leaf-2); font-size: 25px; font-weight: 900; letter-spacing: -.7px; }
+    .detail { color: var(--muted); font-size: 13px; line-height: 1.45; margin-top: 10px; }
+    .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+    .tiny-box {
+      border: 1px solid var(--line);
+      background: var(--wash);
+      border-radius: var(--radius);
+      padding: 9px;
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.35;
+    }
+    .tiny-box b { color: var(--ink); display: block; margin-bottom: 2px; }
+    .layout-wrap {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: linear-gradient(#fbfffc, #edf8f1);
+      padding: 12px;
+      overflow: auto;
+    }
+    .layout {
+      position: relative;
+      width: var(--layout-w);
+      min-width: 220px;
+      height: var(--layout-h);
+      min-height: 260px;
+      margin: auto;
+      border: 2px solid var(--leaf-2);
+      background:
+        linear-gradient(90deg, rgba(13, 107, 80, .08) 1px, transparent 1px),
+        linear-gradient(rgba(13, 107, 80, .08) 1px, transparent 1px),
+        #f8fff9;
+      background-size: var(--cell-x) var(--cell-y);
+      border-radius: var(--radius);
+    }
+    .plant-dot {
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      transform: translate(-50%, -50%);
+      font-size: 15px;
+      background: white;
+      border: 1px solid rgba(8, 80, 65, .25);
+    }
+    .plant-dot.comp { width: 14px; height: 14px; font-size: 12px; background: #e7f7ed; }
+    .plant-dot.refugia { width: 15px; height: 15px; font-size: 12px; background: #fff5de; }
+    .spacing-guide {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: linear-gradient(#ffffff, #f2fbf5);
+      padding: 12px;
+      overflow: hidden;
+    }
+    .spacing-guide-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .spacing-guide-head strong { color: var(--leaf-2); font-size: 14px; }
+    .spacing-guide-head span { display: block; color: var(--muted); font-size: 11px; font-weight: 800; margin-top: 2px; }
+    .guide-arrow {
+      width: 34px;
+      height: 34px;
+      border: 1px solid var(--line);
+      border-radius: 50%;
+      background: var(--mist);
+      color: var(--leaf-2);
+      font-size: 18px;
+      font-weight: 900;
+    }
+    .guide-tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      margin: 8px 0 10px;
+    }
+    .guide-tab {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--paper);
+      color: var(--muted);
+      padding: 7px 5px;
+      font-size: 10px;
+      font-weight: 900;
+    }
+    .guide-tab.active {
+      background: var(--leaf-2);
+      border-color: var(--leaf-2);
+      color: white;
+    }
+    .spacing-stage {
+      position: relative;
+      height: 178px;
+      border: 1px solid #cde4d5;
+      border-radius: var(--radius);
+      background: #fbfffc;
+    }
+    .guide-grid-line {
+      position: absolute;
+      background: rgba(13, 107, 80, .1);
+      z-index: 0;
+    }
+    .guide-grid-line.v { top: 0; bottom: 0; width: 1px; }
+    .guide-grid-line.h { left: 0; right: 0; height: 1px; }
+    .spacing-dot {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      display: grid;
+      place-items: center;
+      z-index: 3;
+    }
+    .spacing-line {
+      position: absolute;
+      background: var(--leaf-2);
+      opacity: .72;
+      z-index: 2;
+    }
+    .spacing-line.h { height: 2px; transform: translateY(-50%); }
+    .spacing-line.v { width: 2px; transform: translateX(-50%); }
+    .spacing-line::before,
+    .spacing-line::after {
+      content: "";
+      position: absolute;
+      width: 7px;
+      height: 7px;
+      border-top: 2px solid var(--leaf-2);
+      border-right: 2px solid var(--leaf-2);
+    }
+    .spacing-line.h::before { left: -2px; top: -3px; transform: rotate(-135deg); }
+    .spacing-line.h::after { right: -2px; top: -3px; transform: rotate(45deg); }
+    .spacing-line.v::before { top: -2px; left: -3px; transform: rotate(-45deg); }
+    .spacing-line.v::after { bottom: -2px; left: -3px; transform: rotate(135deg); }
+    .spacing-label {
+      position: absolute;
+      padding: 3px 7px;
+      border-radius: 999px;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      color: var(--leaf-2);
+      font-size: 10px;
+      font-weight: 900;
+      white-space: nowrap;
+      box-shadow: 0 4px 12px rgba(8, 80, 65, .07);
+      transform: translate(-50%, -50%);
+      z-index: 4;
+    }
+    .companion-strip {
+      position: absolute;
+      border: 1px dashed rgba(8, 80, 65, .45);
+      background: rgba(223, 244, 232, .65);
+      border-radius: 6px;
+      z-index: 1;
+    }
+    .guide-caption {
+      margin-top: 9px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.35;
+      font-weight: 760;
+    }
+    .field-tabs {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+    }
+    .field-tab {
+      min-width: 116px;
+      border: 1px solid var(--line);
+      background: var(--paper);
+      color: var(--muted);
+      border-radius: var(--radius);
+      padding: 10px;
+      text-align: left;
+    }
+    .field-tab.active {
+      border-color: var(--leaf);
+      background: var(--mist);
+      color: var(--leaf-2);
+    }
+    .field-tab strong { display: block; font-size: 13px; }
+    .field-tab span { display: block; margin-top: 2px; font-size: 11px; font-weight: 700; }
+    .demo-strip {
+      border: 1px solid rgba(159, 225, 203, .52);
+      background: linear-gradient(135deg, #0a5d49, #0d6b50);
+      color: #effbf4;
+      border-radius: var(--radius);
+      padding: 13px;
+      display: grid;
+      gap: 9px;
+    }
+    .demo-strip p { color: #bfead9; font-size: 13px; line-height: 1.42; }
+    .segmented {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      padding: 5px;
+      background: var(--mist);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+    }
+    .segment {
+      border: 0;
+      border-radius: 6px;
+      padding: 9px 6px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 850;
+    }
+    .segment.active { background: var(--paper); color: var(--leaf-2); box-shadow: 0 3px 12px rgba(8, 80, 65, .08); }
+    .segment.mini { padding: 7px 5px; font-size: 11px; }
+    .danger-btn {
+      border: 1px solid var(--red-line);
+      background: var(--red);
+      color: #8b2525;
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      font-size: 12px;
+      font-weight: 900;
+    }
+    .danger-btn:disabled { opacity: .45; cursor: default; }
+    .scale-stage {
+      display: grid;
+      grid-template-columns: 34px minmax(0, 1fr);
+      grid-template-rows: auto 30px;
+      gap: 7px;
+      align-items: stretch;
+    }
+    .scale-left {
+      grid-column: 1;
+      grid-row: 1;
+      position: relative;
+      border-right: 1px solid #9bbcab;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 800;
+    }
+    .scale-left span:first-child { position: absolute; top: 0; right: 7px; }
+    .scale-left span:last-child { position: absolute; bottom: 0; right: 7px; }
+    .scale-bottom {
+      grid-column: 2;
+      grid-row: 2;
+      position: relative;
+      border-top: 1px solid #9bbcab;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 800;
+    }
+    .scale-bottom span:first-child { position: absolute; left: 0; top: 6px; }
+    .scale-bottom span:last-child { position: absolute; right: 0; top: 6px; }
+    .shape {
+      display: inline-block;
+      width: var(--s, 14px);
+      height: var(--s, 14px);
+      background: var(--c, var(--leaf));
+      border: 1px solid rgba(8, 80, 65, .28);
+      box-shadow: 0 0 0 2px rgba(255,255,255,.72);
+    }
+    .shape.circle { border-radius: 50%; }
+    .shape.square { border-radius: 3px; }
+    .shape.diamond { border-radius: 2px; transform: rotate(45deg); }
+    .shape.triangle {
+      width: 0;
+      height: 0;
+      background: transparent;
+      border-left: calc(var(--s, 14px) / 2) solid transparent;
+      border-right: calc(var(--s, 14px) / 2) solid transparent;
+      border-bottom: var(--s, 14px) solid var(--c, var(--leaf));
+      box-shadow: none;
+    }
+    .plant-dot.shape-dot {
+      background: transparent;
+      border: 0;
+      box-shadow: none;
+    }
+    .legend { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; }
+    .bottom-nav {
+      display: none;
+      border-top: 1px solid var(--line);
+      background: rgba(255, 255, 255, .96);
+      backdrop-filter: blur(12px);
+      padding: 7px 6px 12px;
+      flex: 0 0 auto;
+    }
+    .bottom-nav.show { display: flex; }
+    .nav-btn {
+      flex: 1;
+      border: 0;
+      background: transparent;
+      color: #8a9a90;
+      display: grid;
+      place-items: center;
+      gap: 2px;
+      padding: 5px 2px;
+      font-size: 10px;
+      font-weight: 800;
+    }
+    .nav-btn .ico { font-size: 20px; }
+    .nav-btn.active { color: var(--leaf-2); }
+    .login {
+      min-height: 100%;
+      display: grid;
+      align-content: center;
+      padding: 34px 24px;
+      background:
+        linear-gradient(155deg, rgba(223, 244, 232, .18), transparent 45%),
+        var(--leaf-2);
+      color: white;
+    }
+    .logo-mark {
+      width: 54px;
+      height: 54px;
+      display: grid;
+      place-items: center;
+      background: rgba(255, 255, 255, .12);
+      border: 1px solid rgba(255, 255, 255, .2);
+      border-radius: var(--radius);
+      font-size: 32px;
+      margin-bottom: 14px;
+    }
+    .login h1 { font-size: 42px; color: white; }
+    .login .sub { color: #9fe1cb; }
+    .login .input { background: rgba(255, 255, 255, .1); border-color: rgba(255, 255, 255, .24); color: white; }
+    .login .input::placeholder { color: rgba(255,255,255,.62); }
+    .login .btn { margin-top: 12px; background: #9fe1cb; border-color: #9fe1cb; color: var(--leaf-2); }
+    @media (min-width: 900px) {
+      .phone { width: min(100%, 980px); }
+      .scr { background: var(--wash); }
+      .top, .section { max-width: 760px; margin: 0 auto; width: 100%; }
+      .top { margin-top: 0; }
+      .login { min-height: calc(100vh - 82px); padding-inline: calc((100% - 460px) / 2); }
+      .dashboard-grid { display: grid; grid-template-columns: 1.15fr .85fr; gap: 14px; align-items: start; }
+      .layout { min-width: 340px; min-height: 360px; }
+    }
   </style>
 </head>
 <body>
-<div class="phone" id="phone">
-  <div class="sbar" id="sbar">
-    <span id="sbar-time">9:41</span>
-    <div style="display:flex;gap:6px;align-items:center">
-      <span style="font-size:10px;display:flex;align-items:center">
-        <span class="mqtt-dot" id="mqtt-dot"></span>
-        <span id="mqtt-txt" style="font-size:9px">MQTT</span>
-      </span>
-      <i class="ti ti-wifi" style="font-size:13px"></i>
-      <i class="ti ti-battery-2" style="font-size:13px"></i>
+  <main class="phone">
+    <div class="statusbar">
+      <span id="clock">9:41</span>
+      <span><span class="mqtt-dot" id="mqtt-dot"></span><span id="mqtt-txt">MQTT</span></span>
     </div>
-  </div>
-  <div class="scr" id="scr"></div>
-  <nav class="bottom-nav" id="bottom-nav" style="display:none">
-    <button class="bnav-item active" id="bnav-dashboard" onclick="showMain('dashboard')">
-      <i class="ti ti-layout-dashboard"></i><span>Home</span>
-    </button>
-    <button class="bnav-item" id="bnav-beds" onclick="showMain('beds')">
-      <i class="ti ti-grid-dots"></i><span>Beds</span>
-    </button>
-    <button class="bnav-item" id="bnav-sensor" onclick="showMain('sensor')">
-      <i class="ti ti-activity"></i><span>Sensor</span>
-    </button>
-    <button class="bnav-item" id="bnav-settings" onclick="showMain('settings')">
-      <i class="ti ti-settings"></i><span>Settings</span>
-    </button>
-  </nav>
-</div>
+    <div class="scr" id="scr"></div>
+    <nav class="bottom-nav" id="bottom-nav">
+      <button class="nav-btn" data-tab="dashboard" onclick="showMain('dashboard')"><span class="ico">⌂</span><span>Home</span></button>
+      <button class="nav-btn" data-tab="beds" onclick="showMain('beds')"><span class="ico">▦</span><span>Beds</span></button>
+      <button class="nav-btn" data-tab="sensor" onclick="showMain('sensor')"><span class="ico">◌</span><span>Sensor</span></button>
+      <button class="nav-btn" data-tab="settings" onclick="showMain('settings')"><span class="ico">⚙</span><span>Settings</span></button>
+    </nav>
+  </main>
 
-<script>
-// ─── Static data ─────────────────────────────────────────────────────────────
-const crops = [
-  {id:'tomato',  n:'Tomato',  icon:'ti-plant',   ph:'6.0–7.0', temp:'20–27°C'},
-  {id:'chili',   n:'Chili',   icon:'ti-flame',   ph:'6.0–7.0', temp:'24–28°C'},
-  {id:'eggplant',n:'Eggplant',icon:'ti-circle',  ph:'5.5–6.8', temp:'26–29°C'},
-  {id:'corn',    n:'Corn',    icon:'ti-wheat',   ph:'5.5–7.5', temp:'25–33°C'},
-  {id:'soybean', n:'Soybean', icon:'ti-leaf',    ph:'6.0–6.5', temp:'25–30°C'},
-  {id:'cucumber',n:'Cucumber',icon:'ti-refresh', ph:'6.0–7.0', temp:'22–30°C'},
-];
-const companions = [
-  {id:1, n:'Basil',   type:'Herb',     icon:'ti-plant-2',          match:98,
-   pros:['Repels whiteflies & thrips','Attracts pollinators','Improves crop vigor'],
-   cons:['Needs regular moisture','Cold sensitive']},
-  {id:2, n:'Marigold',type:'Refugia',  icon:'ti-sun',              match:94,
-   pros:['Repels root nematodes','Attracts beneficial insects','Long bloom period'],
-   cons:['Requires full sun','Can self-seed aggressively']},
-  {id:3, n:'Lettuce', type:'Companion',icon:'ti-layers-intersect', match:89,
-   pros:['Tolerates crop shade','Fast harvest 30 days','Suppresses weeds'],
-   cons:['Needs consistent moisture','Bolts in heat']},
-  {id:4, n:'Garlic',  type:'Spice',    icon:'ti-wind',             match:85,
-   pros:['Repels aphids & mites','Acts as natural fungicide','Very compact growth'],
-   cons:['Long growing season','Inhibits nearby legumes']},
-];
-const plantTypes = [
-  {t:'main',c:'#993C1D',shape:'circle', lbl:'Main crop'},
-  {t:'comp',c:'#0F6E56',shape:'diamond',lbl:'Companion'},
-  {t:'ref', c:'#BA7517',shape:'circle', lbl:'Refugia'},
-  {t:'gnd', c:'#888780',shape:'tri',    lbl:'Ground cover'},
-  {t:'herb',c:'#185FA5',shape:'circle', lbl:'Herb / spice'},
-  {t:'lcc', c:'#3B6D11',shape:'diamond',lbl:'Legume (LCC)'},
-];
-const grid = [
-  ['main','comp','ref','comp','main'],
-  ['herb','lcc','main','lcc','herb'],
-  ['comp','main','gnd','main','comp'],
-  ['ref','comp','main','comp','ref'],
-  ['main','herb','comp','herb','main'],
-  ['comp','lcc','ref','lcc','comp'],
-  ['main','comp','main','comp','main'],
-];
-const beds = [
-  {id:'A1',ph:6.2,ok:true},
-  {id:'A2',ph:5.6,ok:false,fix:'Add 150g lime / m²'},
-  {id:'A3',ph:6.8,ok:true},
-  {id:'B1',ph:7.0,ok:true},
-  {id:'B2',ph:5.3,ok:false,fix:'Add 200g lime / m²'},
-  {id:'B3',ph:6.5,ok:true},
-];
-const bedPlants = [
-  {t:'main',n:'Tomato',            count:12, sp:'50×70 cm',   days:'90 days'},
-  {t:'comp',n:'Lettuce',           count:40, sp:'20×20 cm',   days:'30 days'},
-  {t:'ref', n:'Marigold',          count:8,  sp:'45×45 cm',   days:'60 days'},
-  {t:'herb',n:'Basil',             count:15, sp:'30×30 cm',   days:'45 days'},
-  {t:'lcc', n:'Mucuna bracteata',  count:6,  sp:'100×100 cm', days:'90 days'},
-  {t:'gnd', n:'Arachis pintoi',    count:20, sp:'40×40 cm',   days:'Perennial'},
-];
+  <script>
+    const crops = [
+      {id:'cabai', n:'Cabai Rawit', common:'Chili', scientific:'Capsicum frutescens', visual:'🌶️', spacing:[50,60], ph:[6,7], temp:[24,28], yield:0.75, fertilizer:'N tinggi awal, P & K saat bunga', special:'Pemangkasan tunas air; pemberian mulsa', companions:['kemangi','marigold','bayam']},
+      {id:'terung', n:'Terung Ungu', common:'Eggplant', scientific:'Solanum melongena', visual:'🍆', spacing:[60,70], ph:[5.5,6.8], temp:[26,29], yield:1.4, fertilizer:'N 150 kg/ha; P2O5 130 kg/ha', special:'Pembuangan daun tua; pengajiran', companions:['kemangi','buncis','zinnia']},
+      {id:'jagung', n:'Jagung', common:'Corn', scientific:'Zea mays', visual:'🌽', spacing:[75,20], ph:[5.5,7.5], temp:[25,33], yield:0.28, fertilizer:'N 120-150 kg/ha; P2O5 60 kg/ha', special:'Baik untuk tumpang sari dan struktur rambat', companions:['kacang_panjang','bunga_matahari','calopogonium']},
+      {id:'padi', n:'Padi Gogo', common:'Upland rice', scientific:'Oryza sativa', visual:'🌾', spacing:[25,25], ph:[5,6.5], temp:[25,35], yield:0.045, fertilizer:'N 90 kg/ha; pupuk kandang 5 t/ha', special:'Penanaman di awal musim hujan', companions:['kenikir','semanggi','sereh']},
+      {id:'singkong', n:'Singkong', common:'Cassava', scientific:'Manihot esculenta', visual:'🪵', spacing:[100,100], ph:[4.5,7], temp:[20,30], yield:3.2, fertilizer:'K2O tinggi 120 kg/ha; N moderat', special:'Penjarangan tunas; sistem tumpang sari', companions:['kedelai_sela','arachis','marigold']},
+      {id:'ubi', n:'Ubi Jalar', common:'Sweet potato', scientific:'Ipomoea batatas', visual:'🍠', spacing:[30,70], ph:[5.5,6.5], temp:[24,30], yield:0.85, fertilizer:'K tinggi; minimal N untuk umbi', special:'Pembalikan batang secara berkala', companions:['buncis','kenikir','sereh']},
+      {id:'tomat', n:'Tomat', common:'Tomato', scientific:'Solanum lycopersicum', visual:'🍅', spacing:[50,70], ph:[6,7], temp:[20,27], yield:2.2, fertilizer:'N 150 kg/ha; Ca untuk cegah busuk', special:'Pengajiran intensif; pembuangan tunas', companions:['kemangi','marigold','selada']},
+      {id:'kelapa', n:'Kelapa', common:'Coconut', scientific:'Cocos nucifera', visual:'🥥', spacing:[900,900], ph:[5,8], temp:[27,32], yield:45, fertilizer:'K 2 kg/pohon/tahun; NaCl', special:'Pembersihan mahkota; pemupukan piringan', companions:['arachis','mucuna','sereh']},
+      {id:'kedelai', n:'Kedelai', common:'Soybean', scientific:'Glycine max', visual:'🌱', spacing:[40,15], ph:[6,6.5], temp:[25,30], yield:0.055, fertilizer:'P 60 kg/ha; inokulasi Rhizobium', special:'Inokulasi benih dengan Bradyrhizobium', companions:['jagung_sela','kubis','zinnia','krokot']},
+      {id:'talas', n:'Talas', common:'Taro', scientific:'Colocasia esculenta', visual:'🍃', spacing:[50,50], ph:[5.5,6.5], temp:[21,27], yield:1.8, fertilizer:'Organik tinggi; toleran genangan', special:'Membutuhkan tanah sangat lembab', companions:['pegagan','torenia','sereh']}
+    ];
 
-// ─── Live sensor state (updated by MQTT) ─────────────────────────────────────
-const live = {temp_air:24.5, hum_air:65, hum_soil:45, ph_soil:6.5, lat:null, long:null, ts:null};
+    const companionDb = {
+      kemangi:{n:'Kemangi', common:'Basil', kind:'Herb repellent', visual:'🌿', spacing:[30,30], ph:[6,7], temp:[22,30], note:'Repels whiteflies and thrips; fits between crop rows.', detail:'Aromatic border or row insert for tomato, chili, and eggplant beds.', caution:'Needs regular moisture and pruning.'},
+      marigold:{n:'Marigold', common:'Marigold', kind:'Refugia', visual:'🌼', spacing:[45,45], ph:[6,7.5], temp:[18,30], note:'Repels root nematodes and attracts beneficial insects.', detail:'Strong perimeter flower, useful near Solanaceae crops.', caution:'Best in full sun; avoid overcrowding seedlings.'},
+      bayam:{n:'Bayam', common:'Amaranth', kind:'Sela crop', visual:'🥬', spacing:[15,15], ph:[6,7], temp:[25,35], note:'Fast harvest filler; shades bare soil.', detail:'Good early-cycle intercrop before main canopy closes.', caution:'Harvest young to avoid competition.'},
+      buncis:{n:'Buncis', common:'Bean', kind:'Legume companion', visual:'🫘', spacing:[20,40], ph:[6,7], temp:[18,25], note:'Adds nitrogen and uses a different canopy layer.', detail:'Works as a light companion when trellised carefully.', caution:'Keep away from garlic-heavy sections.'},
+      zinnia:{n:'Zinnia', common:'Zinnia', kind:'Refugia', visual:'🌸', spacing:[30,30], ph:[5.5,7.5], temp:[20,32], note:'Attracts pollinators and syrphid flies.', detail:'Colorful refugia patch for predator support.', caution:'Needs airflow to prevent mildew.'},
+      kacang_panjang:{n:'Kacang Panjang', common:'Yardlong bean', kind:'Legume companion', visual:'🫛', spacing:[25,75], ph:[5.5,6.5], temp:[25,35], note:'Fixes nitrogen and can use corn as structure.', detail:'Classic vertical layer for corn polyculture.', caution:'Needs support and regular harvest.'},
+      bunga_matahari:{n:'Bunga Matahari', common:'Sunflower', kind:'Refugia', visual:'🌻', spacing:[60,60], ph:[6,7.5], temp:[20,32], note:'Attracts bees and natural predators.', detail:'Use as perimeter marker and wind cue.', caution:'Can shade small crops if placed inside rows.'},
+      calopogonium:{n:'Calopogonium', common:'Calopo', kind:'LCC', visual:'☘️', spacing:[40,40], ph:[5,6.5], temp:[24,32], note:'Living cover crop for weed suppression.', detail:'Low cover for larger bed systems.', caution:'Control spread near young seedlings.'},
+      kenikir:{n:'Kenikir', common:'Cosmos', kind:'Refugia', visual:'🌺', spacing:[40,40], ph:[5.5,7], temp:[22,32], note:'Attracts predators for aphids and leafhoppers.', detail:'Good edge refugia in warm beds.', caution:'Prune before it dominates edges.'},
+      semanggi:{n:'Semanggi', common:'Clover', kind:'Ground cover', visual:'☘️', spacing:[20,20], ph:[6,7], temp:[18,28], note:'Living mulch for moist soil cover.', detail:'Useful where soil should stay covered and cool.', caution:'Not for very dry beds.'},
+      sereh:{n:'Sereh Dapur', common:'Lemongrass', kind:'Repellent', visual:'🌾', spacing:[50,50], ph:[5.5,7.5], temp:[24,32], note:'Aromatic edge plant that helps confuse pests.', detail:'Use on corners or borders rather than between tight rows.', caution:'Clumps get large over time.'},
+      kedelai_sela:{n:'Kedelai', common:'Soybean intercrop', kind:'Legume companion', visual:'🌱', spacing:[40,15], ph:[6,6.5], temp:[25,30], note:'Tumpang sari rendah untuk menambah nitrogen.', detail:'Fits below cassava while light is available.', caution:'pH needs are narrower than cassava.'},
+      arachis:{n:'Arachis pintoi', common:'Pinto peanut', kind:'Ground cover', visual:'🍀', spacing:[40,40], ph:[5.5,7], temp:[22,32], note:'Perennial living mulch and erosion control.', detail:'Strong choice below coconut or cassava.', caution:'Needs establishment time.'},
+      mucuna:{n:'Mucuna bracteata', common:'Mucuna', kind:'LCC', visual:'🌿', spacing:[100,100], ph:[5,6.5], temp:[24,32], note:'Large living cover for plantations.', detail:'Excellent for coconut spacing and soil cover.', caution:'Too vigorous for small vegetable beds.'},
+      selada:{n:'Selada', common:'Lettuce', kind:'Sela crop', visual:'🥬', spacing:[20,20], ph:[6,7], temp:[15,25], note:'Fast harvest filler; shades bare soil.', detail:'Best in early tomato growth or cooler sections.', caution:'Bolts under high heat.'},
+      jagung_sela:{n:'Jagung', common:'Corn strip', kind:'Structure crop', visual:'🌽', spacing:[75,20], ph:[5.5,7.5], temp:[25,33], note:'Adds vertical structure and canopy diversity.', detail:'Use in strips beside soybean, not as a dense mix.', caution:'Can outcompete if planted too close.'},
+      kubis:{n:'Kubis', common:'Cabbage', kind:'Between-row crop', visual:'🥬', spacing:[40,50], ph:[5.5,6.5], temp:[15,20], note:'Compact leaf crop for between-row placement where shade is controlled.', detail:'Place between soybean rows when airflow is good and harvest timing is short.', caution:'Needs cooler sections and steady moisture.'},
+      krokot:{n:'Krokot Gelang', common:'Purslane', kind:'Ground cover', visual:'🌿', spacing:[20,20], ph:[5.5,7], temp:[25,35], note:'Heat-tolerant soil cover and mineral accumulator.', detail:'Keeps bare soil shaded in hot beds.', caution:'Can spread quickly.'},
+      pegagan:{n:'Pegagan', common:'Gotu kola', kind:'Ground cover', visual:'🍀', spacing:[20,20], ph:[5.5,7], temp:[22,30], note:'Loves moist beds and covers soil around taro.', detail:'Pairs well with wet or partly shaded bedengan.', caution:'Avoid drought stress.'},
+      torenia:{n:'Torenia', common:'Wishbone flower', kind:'Refugia', visual:'🌷', spacing:[20,20], ph:[5.5,6.5], temp:[20,28], note:'Small flowering refugia for shaded humid areas.', detail:'Good near talas where taller flowers struggle.', caution:'Needs moist soil.'}
+    };
 
-// ─── App state ────────────────────────────────────────────────────────────────
-const st = {screen:'login', tab:'dashboard', crop:'tomato', exp:null, chosen:[], scanned:0, activeBed:'A1', q:''};
-
-// ─── MQTT ─────────────────────────────────────────────────────────────────────
-let mqttClient;
-function setupMQTT() {
-  mqttClient = mqtt.connect('wss://broker.emqx.io:8084/mqtt', {
-    clientId: 'poli_pf_' + Math.random().toString(16).substr(2,8),
-    keepalive: 60, clean: true, reconnectPeriod: 2000,
-  });
-  mqttClient.on('connect', () => {
-    setDot('ok');
-    mqttClient.subscribe('hackviet/data/sensors');
-    mqttClient.subscribe('hackviet/data/gps');
-  });
-  mqttClient.on('error', () => setDot('err'));
-  mqttClient.on('reconnect', () => setDot(''));
-  mqttClient.on('message', (topic, msg) => {
-    try {
-      const d = JSON.parse(msg.toString());
-      if (topic === 'hackviet/data/sensors') {
-        if (d.temp_air  != null) live.temp_air  = d.temp_air;
-        if (d.hum_air   != null) live.hum_air   = d.hum_air;
-        if (d.hum_soil  != null) live.hum_soil  = d.hum_soil;
-        if (d.ph_soil   != null) live.ph_soil   = d.ph_soil;
-        if (d.timestamp != null) live.ts        = d.timestamp;
-      } else if (topic === 'hackviet/data/gps') {
-        if (d.lat  != null) live.lat  = d.lat;
-        if (d.long != null) live.long = d.long;
+    const live = {temp_air:26, hum_air:65, hum_soil:48, ph_soil:6.4, lat:null, long:null, ts:null};
+    const seedFields = [
+      {
+        name:'Field A',
+        crop:'tomat',
+        target:180,
+        layoutMode:'edge',
+        chosen:{},
+        placements:{},
+        beds:[
+          {id:'A1', length:7, width:1.2, ph:6.2, moisture:48, lat:-6.2001, lng:106.8171},
+          {id:'A2', length:7, width:1.2, ph:5.6, moisture:42, lat:-6.2003, lng:106.8173}
+        ]
+      },
+      {
+        name:'Soybean Demo',
+        crop:'kedelai',
+        target:7.2,
+        layoutMode:'perimeter',
+        chosen:{A1:'jagung_sela'},
+        placements:{A1:'perimeter'},
+        beds:[
+          {id:'A1', length:7.5, width:1.6, ph:6.2, moisture:52, lat:-6.2012, lng:106.8184}
+        ]
       }
-      if (st.screen === 'main') render();
-    } catch(e) {}
-  });
-}
-function setDot(s) {
-  const el = document.getElementById('mqtt-dot');
-  if (el) el.className = 'mqtt-dot' + (s === 'ok' ? ' ok' : s === 'err' ? ' err' : '');
-}
+    ];
+    const st = {
+      screen:'login',
+      tab:'dashboard',
+      fields: JSON.parse(JSON.stringify(seedFields)),
+      activeField:0,
+      fieldName:'Field A',
+      crop:'tomat',
+      target:180,
+      layoutMode:'edge',
+      q:'',
+      setupBed:0,
+      scanned:0,
+      activeBed:'A1',
+      guideStep:0,
+      chosen:{},
+      placements:{},
+      beds:[
+        {id:'A1', length:7, width:1.2, ph:6.2, moisture:48, lat:-6.2001, lng:106.8171},
+        {id:'A2', length:7, width:1.2, ph:5.6, moisture:42, lat:-6.2003, lng:106.8173}
+      ]
+    };
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-function dot(type, sz) {
-  const p = plantTypes.find(x => x.t === type) || plantTypes[0];
-  if (p.shape === 'diamond') return `<div style="width:${sz}px;height:${sz}px;background:${p.c};transform:rotate(45deg);flex-shrink:0;border-radius:1px"></div>`;
-  if (p.shape === 'tri')     return `<div style="width:0;height:0;border-left:${sz/2}px solid transparent;border-right:${sz/2}px solid transparent;border-bottom:${sz}px solid ${p.c};flex-shrink:0"></div>`;
-  return `<div style="width:${sz}px;height:${sz}px;border-radius:50%;background:${p.c};flex-shrink:0"></div>`;
-}
-function miniGrid(rows) {
-  return grid.slice(0, rows).map(row =>
-    `<div style="display:flex;gap:4px;align-items:center">${row.map(t => dot(t, 8)).join('')}</div>`
-  ).join('');
-}
-function f1(v) { return parseFloat(v).toFixed(1); }
-
-// ─── Screen renderers ─────────────────────────────────────────────────────────
-function S_login() { return `
-<div style="background:#085041;min-height:100%;display:flex;flex-direction:column;padding:0 24px">
-  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;padding-top:48px">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-      <div style="width:44px;height:44px;background:#0F6E56;border-radius:14px;display:flex;align-items:center;justify-content:center">
-        <i class="ti ti-leaf" style="font-size:22px;color:#9FE1CB"></i>
-      </div>
-      <span style="font-size:30px;font-weight:700;color:#fff;letter-spacing:-1px">PolyFarm</span>
-    </div>
-    <p style="color:#5DCAA5;font-size:14px;margin-bottom:40px;line-height:1.5">Smart polyculture,<br>guided by nature's data.</p>
-    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px">
-      <input placeholder="Email address" style="background:rgba(255,255,255,.1);border:.5px solid rgba(255,255,255,.25);border-radius:12px;padding:14px 16px;color:#fff;font-size:14px;outline:none;font-family:inherit"/>
-      <input type="password" placeholder="Password" style="background:rgba(255,255,255,.1);border:.5px solid rgba(255,255,255,.25);border-radius:12px;padding:14px 16px;color:#fff;font-size:14px;outline:none;font-family:inherit"/>
-      <div style="text-align:right;margin-top:-4px"><span style="color:#5DCAA5;font-size:12px;font-weight:500">Forgot password?</span></div>
-    </div>
-    <button onclick="nav('crop')" style="background:#5DCAA5;color:#085041;border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">Sign in</button>
-  </div>
-  <div style="padding:20px 0 32px;text-align:center">
-    <p style="color:#5DCAA5;font-size:13px">No account? <span style="color:#fff;font-weight:600">Sign up free</span></p>
-  </div>
-</div>`; }
-
-function S_crop() {
-  const q = st.q || '';
-  const list = crops.filter(c => c.n.toLowerCase().includes(q.toLowerCase()));
-  return `
-<div style="background:var(--color-background-primary);min-height:100%">
-  <div class="ph-hdr">
-    <div class="step-label">Step 1 of 4</div>
-    <div class="screen-title">What will you grow?</div>
-    <div class="screen-sub">Select your main crop to begin</div>
-  </div>
-  <div style="padding:12px 20px">
-    <div style="display:flex;align-items:center;gap:8px;background:var(--color-background-secondary);border:.5px solid var(--color-border-tertiary);border-radius:10px;padding:10px 14px">
-      <i class="ti ti-search" style="font-size:16px;color:var(--color-text-tertiary)"></i>
-      <input oninput="st.q=this.value;render()" placeholder="Search crops..." value="${q}" style="background:none;border:none;outline:none;font-size:14px;color:var(--color-text-primary);font-family:inherit;flex:1"/>
-    </div>
-  </div>
-  <div style="padding:0 20px;display:grid;grid-template-columns:repeat(2,1fr);gap:10px">
-    ${list.map(c => {
-      const sel = st.crop === c.id;
-      return `<button onclick="st.crop='${c.id}';render()" style="background:${sel?'#E1F5EE':'var(--color-background-secondary)'};border:${sel?'1.5px solid #0F6E56':'.5px solid var(--color-border-tertiary)'};border-radius:14px;padding:14px 12px;cursor:pointer;text-align:left;position:relative">
-        ${sel?`<div style="position:absolute;top:8px;right:8px;width:18px;height:18px;background:#0F6E56;border-radius:50%;display:flex;align-items:center;justify-content:center"><i class="ti ti-check" style="font-size:11px;color:#E1F5EE"></i></div>`:''}
-        <div style="width:36px;height:36px;background:var(--color-background-primary);border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:8px;border:.5px solid var(--color-border-tertiary)">
-          <i class="ti ${c.icon}" style="font-size:20px;color:${sel?'#0F6E56':'var(--color-text-secondary)'}"></i>
-        </div>
-        <div style="font-size:14px;font-weight:600;color:var(--color-text-primary)">${c.n}</div>
-        <div style="font-size:11px;color:var(--color-text-tertiary);margin-top:2px">pH ${c.ph}</div>
-      </button>`;
-    }).join('')}
-  </div>
-  <div style="padding:16px 20px 24px">
-    <button onclick="nav('scan')" class="btn-primary">Continue <i class="ti ti-arrow-right"></i></button>
-  </div>
-</div>`; }
-
-function S_scan() {
-  const sc = st.scanned, pct = Math.round(sc / beds.length * 100);
-  return `
-<div style="background:var(--color-background-primary);min-height:100%">
-  <div class="ph-hdr">
-    <div class="step-label">Step 2 of 4</div>
-    <div class="screen-title">Scan your beds</div>
-    <div class="screen-sub">Insert sensor into each bed until OLED confirms</div>
-  </div>
-  <div style="padding:20px;display:flex;justify-content:center">
-    <div style="position:relative;width:110px;height:110px">
-      <div style="position:absolute;inset:0;border-radius:50%;border:1.5px solid #9FE1CB"></div>
-      <div style="position:absolute;inset:14px;border-radius:50%;border:1.5px solid #5DCAA5"></div>
-      <div style="position:absolute;inset:28px;border-radius:50%;background:#E1F5EE;display:flex;align-items:center;justify-content:center">
-        <i class="ti ti-leaf" style="font-size:26px;color:#0F6E56"></i>
-      </div>
-    </div>
-  </div>
-  <div style="padding:0 20px 12px">
-    <div style="display:flex;justify-content:space-between;margin-bottom:6px">
-      <span style="font-size:13px;font-weight:500;color:var(--color-text-primary)">Scan progress</span>
-      <span style="font-size:13px;font-weight:600;color:#0F6E56">${sc}/${beds.length} beds</span>
-    </div>
-    <div style="height:5px;background:var(--color-background-secondary);border-radius:3px">
-      <div style="height:100%;background:#0F6E56;border-radius:3px;width:${pct}%;transition:width .4s ease"></div>
-    </div>
-  </div>
-  <div style="padding:0 20px;display:flex;flex-direction:column;gap:8px">
-    ${beds.map((b, i) => `
-    <div style="display:flex;align-items:center;gap:10px;background:${i<sc?'#E1F5EE':'var(--color-background-secondary)'};border-radius:10px;padding:10px 14px;border:.5px solid ${i<sc?'#9FE1CB':'var(--color-border-tertiary)'}">
-      <div style="width:30px;height:30px;border-radius:50%;background:${i<sc?'#0F6E56':'var(--color-background-primary)'};border:.5px solid ${i<sc?'#0F6E56':'var(--color-border-secondary)'};display:flex;align-items:center;justify-content:center">
-        ${i<sc?`<i class="ti ti-check" style="font-size:14px;color:#E1F5EE"></i>`:`<span style="font-size:11px;color:var(--color-text-tertiary)">${i+1}</span>`}
-      </div>
-      <div style="flex:1">
-        <div style="font-size:13px;font-weight:600;color:var(--color-text-primary)">Bed ${b.id}</div>
-        ${i<sc?`<div style="font-size:11px;color:#0F6E56">pH ${b.ph} detected</div>`:`<div style="font-size:11px;color:var(--color-text-tertiary)">Waiting for sensor...</div>`}
-      </div>
-      <span style="font-size:11px;font-weight:600;color:${i<sc?'#0F6E56':'var(--color-text-tertiary)'}">${i<sc?'Detected':'–'}</span>
-    </div>`).join('')}
-  </div>
-  <div style="padding:16px 20px 24px">
-    <button onclick="${sc>=beds.length?"nav('ph')":'void 0'}" class="btn-primary" ${sc<beds.length?'disabled':''}>
-      ${sc>=beds.length?'View Results <i class="ti ti-arrow-right"></i>':'Scanning...'}
-    </button>
-  </div>
-</div>`; }
-
-function S_ph() {
-  const ok = beds.filter(b => b.ok).length;
-  const avg = (beds.reduce((a, b) => a + b.ph, 0) / beds.length).toFixed(1);
-  return `
-<div style="background:var(--color-background-secondary);min-height:100%">
-  <div style="background:var(--color-background-primary);padding:20px 20px 16px;border-bottom:.5px solid var(--color-border-tertiary)">
-    <div class="step-label">Step 3 of 4</div>
-    <div class="screen-title">Soil analysis</div>
-    <div class="screen-sub">pH readings from all ${beds.length} beds</div>
-  </div>
-  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:12px 20px">
-    <div style="background:#E1F5EE;border-radius:10px;padding:10px;text-align:center">
-      <div style="font-size:20px;font-weight:700;color:#085041">${ok}</div>
-      <div style="font-size:10px;color:#0F6E56">Ready</div>
-    </div>
-    <div style="background:#FAEEDA;border-radius:10px;padding:10px;text-align:center">
-      <div style="font-size:20px;font-weight:700;color:#633806">${beds.length - ok}</div>
-      <div style="font-size:10px;color:#854F0B">Need care</div>
-    </div>
-    <div style="background:var(--color-background-primary);border:.5px solid var(--color-border-tertiary);border-radius:10px;padding:10px;text-align:center">
-      <div style="font-size:20px;font-weight:700;color:var(--color-text-primary)">${avg}</div>
-      <div style="font-size:10px;color:var(--color-text-secondary)">Avg pH</div>
-    </div>
-  </div>
-  <div style="padding:0 20px;display:flex;flex-direction:column;gap:8px">
-    ${beds.map(b => `
-    <div style="background:var(--color-background-primary);border-radius:12px;padding:12px 14px;border:.5px solid var(--color-border-tertiary)">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:${b.ok?0:8}px">
-        <div style="display:flex;align-items:center;gap:8px">
-          <span style="font-size:14px;font-weight:600;color:var(--color-text-primary)">Bed ${b.id}</span>
-          <span class="badge ${b.ok?'badge-ok':'badge-warn'}">${b.ok?'Optimal':'Acidic'}</span>
-        </div>
-        <span style="font-size:20px;font-weight:700;color:${b.ok?'#085041':'#854F0B'}">${b.ph}</span>
-      </div>
-      ${!b.ok?`<div style="display:flex;align-items:center;gap:6px;background:#FAEEDA;border-radius:8px;padding:7px 10px">
-        <i class="ti ti-alert-triangle" style="font-size:13px;color:#854F0B;flex-shrink:0"></i>
-        <span style="font-size:11px;color:#633806">${b.fix}</span>
-      </div>`:''}
-    </div>`).join('')}
-  </div>
-  <div style="padding:16px 20px 24px">
-    <button onclick="nav('companion')" class="btn-primary">Find companion plants <i class="ti ti-arrow-right"></i></button>
-  </div>
-</div>`; }
-
-function S_companion() {
-  const crop = crops.find(c => c.id === st.crop) || crops[0];
-  return `
-<div style="background:var(--color-background-secondary);min-height:100%">
-  <div style="background:var(--color-background-primary);padding:20px 20px 16px;border-bottom:.5px solid var(--color-border-tertiary)">
-    <div class="step-label">Step 4 of 4</div>
-    <div class="screen-title">Companion plants</div>
-    <div style="display:flex;align-items:center;gap:6px;margin-top:6px">
-      <span style="font-size:13px;color:var(--color-text-secondary)">AI matched for</span>
-      <span style="font-size:12px;font-weight:600;color:#0F6E56;background:#E1F5EE;padding:2px 8px;border-radius:6px">
-        <i class="ti ${crop.icon}" style="font-size:13px;vertical-align:-1px"></i> ${crop.n}
-      </span>
-    </div>
-  </div>
-  <div style="padding:12px 20px;display:flex;flex-direction:column;gap:10px">
-    ${companions.map(c => {
-      const sel = st.chosen.includes(c.id), exp = st.exp === c.id;
-      return `
-    <div style="background:var(--color-background-primary);border-radius:14px;overflow:hidden;border:${sel?'1.5px solid #0F6E56':'.5px solid var(--color-border-tertiary)'}">
-      <div style="padding:12px 14px;display:flex;align-items:center;gap:10px;cursor:pointer" onclick="st.exp=st.exp===${c.id}?null:${c.id};render()">
-        <div style="width:40px;height:40px;background:#E1F5EE;border-radius:10px;display:flex;align-items:center;justify-content:center">
-          <i class="ti ${c.icon}" style="font-size:20px;color:#0F6E56"></i>
-        </div>
-        <div style="flex:1">
-          <div style="font-size:14px;font-weight:600;color:var(--color-text-primary)">${c.n}</div>
-          <div style="font-size:11px;color:var(--color-text-secondary)">${c.type}</div>
-        </div>
-        <div style="text-align:right">
-          <div style="font-size:13px;font-weight:700;color:#3B6D11">${c.match}% match</div>
-          <i class="ti ${exp?'ti-chevron-up':'ti-chevron-down'}" style="font-size:12px;color:var(--color-text-tertiary)"></i>
-        </div>
-      </div>
-      ${exp?`<div style="padding:0 14px 12px;border-top:.5px solid var(--color-border-tertiary)">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding-top:10px">
-          <div>
-            <div style="font-size:10px;font-weight:700;color:#3B6D11;margin-bottom:6px">PROS</div>
-            ${c.pros.map(p=>`<div style="font-size:11px;color:var(--color-text-primary);margin-bottom:4px;padding-left:8px;border-left:2px solid #9FE1CB">${p}</div>`).join('')}
-          </div>
-          <div>
-            <div style="font-size:10px;font-weight:700;color:#A32D2D;margin-bottom:6px">CONS</div>
-            ${c.cons.map(p=>`<div style="font-size:11px;color:var(--color-text-primary);margin-bottom:4px;padding-left:8px;border-left:2px solid #F7C1C1">${p}</div>`).join('')}
-          </div>
-        </div>
-      </div>`:''}
-      <div style="padding:0 14px 12px">
-        <button onclick="let i=st.chosen.indexOf(${c.id});i>=0?st.chosen.splice(i,1):st.chosen.push(${c.id});render()" style="width:100%;background:${sel?'#085041':'var(--color-background-secondary)'};color:${sel?'#E1F5EE':'#0F6E56'};border:.5px solid ${sel?'#085041':'var(--color-border-secondary)'};border-radius:10px;padding:9px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit">
-          ${sel?'<i class="ti ti-check"></i> Selected':'+ Add to plan'}
-        </button>
-      </div>
-    </div>`;
-    }).join('')}
-  </div>
-  ${st.chosen.length > 0 ? `
-  <div style="padding:0 20px 24px">
-    <button onclick="nav('main')" class="btn-primary">
-      Build my beds (${st.chosen.length} chosen) <i class="ti ti-arrow-right"></i>
-    </button>
-  </div>` : ''}
-</div>`; }
-
-function T_dashboard() { return `
-<div style="background:var(--color-background-secondary);min-height:100%">
-  <div style="background:#085041;padding:20px 20px 16px">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
-      <div>
-        <div style="font-size:11px;color:#5DCAA5;font-weight:500">My farm</div>
-        <div style="font-size:20px;font-weight:700;color:#fff;letter-spacing:-.5px">Pak Ahmad's Farm</div>
-      </div>
-      <i class="ti ti-bell" style="font-size:20px;color:#5DCAA5"></i>
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
-      ${[
-        ['ti-thermometer', f1(live.temp_air)+'°C', 'Temp'],
-        ['ti-droplet',     f1(live.hum_air)+'%',   'Humidity'],
-        ['ti-waves',       f1(live.hum_soil)+'%',  'Soil'],
-        ['ti-flask',       f1(live.ph_soil),        'pH'],
-      ].map(([ic,v,lb]) => `
-      <div style="background:rgba(255,255,255,.12);border-radius:9px;padding:8px 4px;text-align:center">
-        <i class="ti ${ic}" style="font-size:14px;color:#5DCAA5"></i>
-        <div style="font-size:12px;font-weight:600;color:#fff;margin-top:2px">${v}</div>
-        <div style="font-size:9px;color:#5DCAA5">${lb}</div>
-      </div>`).join('')}
-    </div>
-    ${live.ts ? `<div style="font-size:10px;color:#5DCAA5;margin-top:8px;text-align:right">Updated: ${live.ts}</div>` : ''}
-  </div>
-  <div style="background:var(--color-background-primary);padding:14px 20px;border-bottom:.5px solid var(--color-border-tertiary)">
-    <div style="font-size:13px;color:var(--color-text-secondary);margin-bottom:10px">Tap a bed for details</div>
-    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px">
-      ${beds.map(b => `
-      <button onclick="st.activeBed='${b.id}';showMain('bed')" style="background:var(--color-background-secondary);border:.5px solid var(--color-border-tertiary);border-radius:14px;padding:12px;cursor:pointer;text-align:left">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-          <span style="font-size:13px;font-weight:600;color:var(--color-text-primary)">Bed ${b.id}</span>
-          <span style="font-size:11px;font-weight:600;color:${b.ok?'#085041':'#854F0B'};background:${b.ok?'#E1F5EE':'#FAEEDA'};padding:2px 6px;border-radius:5px">pH ${b.ph}</span>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:3px;align-items:flex-start">${miniGrid(4)}</div>
-      </button>`).join('')}
-    </div>
-  </div>
-  <div style="padding:12px 20px 16px">
-    <div style="font-size:12px;font-weight:500;color:var(--color-text-tertiary);margin-bottom:8px">LEGEND</div>
-    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:5px">
-      ${plantTypes.map(p => `<div style="display:flex;align-items:center;gap:6px">${dot(p.t,10)}<span style="font-size:11px;color:var(--color-text-secondary)">${p.lbl}</span></div>`).join('')}
-    </div>
-  </div>
-</div>`; }
-
-function T_beds() { return `
-<div style="background:var(--color-background-secondary);min-height:100%">
-  <div class="ph-hdr">
-    <div class="screen-title">My Beds</div>
-    <div class="screen-sub">${beds.filter(b=>b.ok).length} of ${beds.length} beds ready</div>
-  </div>
-  <div style="padding:12px 20px;display:flex;flex-direction:column;gap:10px">
-    ${beds.map(b => `
-    <div style="background:var(--color-background-primary);border-radius:12px;padding:14px;border:.5px solid var(--color-border-tertiary)">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:${b.ok?0:10}px">
-        <div style="display:flex;align-items:center;gap:8px">
-          <span style="font-size:15px;font-weight:700;color:var(--color-text-primary)">Bed ${b.id}</span>
-          <span class="badge ${b.ok?'badge-ok':'badge-warn'}">${b.ok?'Optimal':'Acidic'}</span>
-        </div>
-        <span style="font-size:22px;font-weight:700;color:${b.ok?'#085041':'#854F0B'}">${b.ph}</span>
-      </div>
-      ${!b.ok?`<div style="display:flex;align-items:center;gap:6px;background:#FAEEDA;border-radius:8px;padding:7px 10px;margin-bottom:10px">
-        <i class="ti ti-alert-triangle" style="font-size:13px;color:#854F0B;flex-shrink:0"></i>
-        <span style="font-size:11px;color:#633806">${b.fix}</span>
-      </div>`:''}
-      <button onclick="st.activeBed='${b.id}';showMain('bed')" style="width:100%;padding:8px;background:#E1F5EE;color:#085041;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">
-        View Layout <i class="ti ti-arrow-right"></i>
-      </button>
-    </div>`).join('')}
-  </div>
-</div>`; }
-
-function T_sensor() { return `
-<div style="background:var(--color-background-secondary);min-height:100%">
-  <div class="ph-hdr">
-    <div class="screen-title">Live Sensor</div>
-    <div class="screen-sub">Real-time data via MQTT</div>
-  </div>
-  <div style="padding:16px 20px;display:flex;flex-direction:column;gap:12px">
-    ${[
-      {ic:'ti-thermometer', lbl:'Air Temperature', val:f1(live.temp_air), unit:'°C', color:'#993C1D', bg:'#FAEEDA'},
-      {ic:'ti-droplet',     lbl:'Air Humidity',    val:f1(live.hum_air),  unit:'%',  color:'#185FA5', bg:'#E8F0FD'},
-      {ic:'ti-waves',       lbl:'Soil Moisture',   val:f1(live.hum_soil), unit:'%',  color:'#3B6D11', bg:'#E8F5E0'},
-      {ic:'ti-flask',       lbl:'Soil pH',         val:f1(live.ph_soil),  unit:'',   color:'#085041', bg:'#E1F5EE'},
-    ].map(m => `
-    <div style="background:var(--color-background-primary);border-radius:14px;padding:16px;border:.5px solid var(--color-border-tertiary);display:flex;align-items:center;gap:14px">
-      <div style="width:48px;height:48px;border-radius:14px;background:${m.bg};display:flex;align-items:center;justify-content:center;flex-shrink:0">
-        <i class="ti ${m.ic}" style="font-size:24px;color:${m.color}"></i>
-      </div>
-      <div style="flex:1">
-        <div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:2px">${m.lbl}</div>
-        <div style="font-size:28px;font-weight:700;color:var(--color-text-primary);font-family:'DM Mono',monospace;line-height:1">
-          ${m.val}<span style="font-size:14px;color:var(--color-text-secondary);font-weight:400">${m.unit}</span>
-        </div>
-      </div>
-    </div>`).join('')}
-    ${live.lat ? `
-    <div style="background:var(--color-background-primary);border-radius:14px;padding:16px;border:.5px solid var(--color-border-tertiary)">
-      <div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:6px"><i class="ti ti-map-pin" style="font-size:13px;vertical-align:-1px"></i> GPS Location</div>
-      <div style="font-size:13px;font-weight:600;font-family:'DM Mono',monospace;color:var(--color-text-primary)">${live.lat.toFixed(6)}, ${live.long.toFixed(6)}</div>
-    </div>` : ''}
-    <div style="background:var(--color-background-secondary);border-radius:10px;padding:12px;text-align:center;border:.5px dashed var(--color-border-primary)">
-      <div style="font-size:11px;color:var(--color-text-tertiary)">
-        Topic: <span style="font-family:'DM Mono',monospace">hackviet/data/sensors</span>
-      </div>
-      ${live.ts
-        ? `<div style="font-size:11px;color:#0F6E56;margin-top:4px">Last update: ${live.ts}</div>`
-        : `<div style="font-size:11px;color:var(--color-text-tertiary);margin-top:4px">Waiting for hardware data...</div>`}
-    </div>
-  </div>
-</div>`; }
-
-function T_settings() { return `
-<div style="background:var(--color-background-secondary);min-height:100%">
-  <div class="ph-hdr">
-    <div class="screen-title">Settings</div>
-  </div>
-  <div style="padding:16px 20px;display:flex;flex-direction:column;gap:12px">
-    <div style="background:var(--color-background-primary);border-radius:14px;padding:16px;border:.5px solid var(--color-border-tertiary)">
-      <div style="font-size:11px;font-weight:700;color:var(--color-text-tertiary);margin-bottom:12px;letter-spacing:.5px">PROFILE</div>
-      <input type="text" value="Pak Ahmad" style="width:100%;padding:12px 14px;border-radius:10px;border:.5px solid var(--color-border-primary);font-family:inherit;font-size:14px;margin-bottom:8px;outline:none;color:var(--color-text-primary)"/>
-      <input type="email" value="ahmad@polyfarm.id" style="width:100%;padding:12px 14px;border-radius:10px;border:.5px solid var(--color-border-primary);font-family:inherit;font-size:14px;outline:none;color:var(--color-text-primary)"/>
-    </div>
-    <div style="background:var(--color-background-primary);border-radius:14px;padding:16px;border:.5px solid var(--color-border-tertiary)">
-      <div style="font-size:11px;font-weight:700;color:var(--color-text-tertiary);margin-bottom:10px;letter-spacing:.5px">MQTT BROKER</div>
-      <div style="font-size:12px;font-family:'DM Mono',monospace;color:var(--color-text-primary);margin-bottom:4px">broker.emqx.io:8084 (WSS)</div>
-      <div style="font-size:11px;color:var(--color-text-tertiary)">hackviet/data/sensors<br>hackviet/data/gps</div>
-    </div>
-    <button onclick="nav('login')" style="width:100%;padding:14px;background:#FCEBEB;color:#501313;border:.5px solid #F7C1C1;border-radius:12px;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer">
-      <i class="ti ti-logout"></i> Sign Out
-    </button>
-  </div>
-</div>`; }
-
-function T_bed() {
-  const b = beds.find(x => x.id === st.activeBed) || beds[0];
-  return `
-<div style="background:var(--color-background-secondary);min-height:100%">
-  <div style="background:var(--color-background-primary);padding:16px 20px;display:flex;align-items:center;gap:10px;border-bottom:.5px solid var(--color-border-tertiary)">
-    <button onclick="showMain('dashboard')" style="width:34px;height:34px;border-radius:10px;background:var(--color-background-secondary);border:.5px solid var(--color-border-secondary);display:flex;align-items:center;justify-content:center;cursor:pointer">
-      <i class="ti ti-arrow-left" style="font-size:16px;color:var(--color-text-primary)"></i>
-    </button>
-    <div>
-      <div style="font-size:18px;font-weight:700;color:var(--color-text-primary)">Bed ${b.id}</div>
-      <div style="font-size:12px;color:var(--color-text-secondary)">pH ${b.ph} · ${b.ok?'Ready to plant':'Needs amendment'}</div>
-    </div>
-  </div>
-  <div style="background:var(--color-background-primary);margin:12px 20px;border-radius:14px;padding:14px;border:.5px solid var(--color-border-tertiary)">
-    <div style="font-size:11px;font-weight:600;color:var(--color-text-tertiary);margin-bottom:10px;letter-spacing:.5px">BED LAYOUT – 5m × 7m</div>
-    <div style="background:#E1F5EE;border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:6px;align-items:center;border:.5px solid #9FE1CB">
-      ${grid.map(row => `<div style="display:flex;gap:7px;align-items:center">${row.map(t => dot(t, 14)).join('')}</div>`).join('')}
-    </div>
-  </div>
-  <div style="padding:0 20px">
-    <div style="font-size:11px;font-weight:600;color:var(--color-text-tertiary);margin-bottom:8px;letter-spacing:.5px">PLANTS IN THIS BED</div>
-    <div style="display:flex;flex-direction:column;gap:7px">
-      ${bedPlants.map(p => `
-      <div style="background:var(--color-background-primary);border-radius:11px;padding:10px 12px;display:flex;align-items:center;gap:10px;border:.5px solid var(--color-border-tertiary)">
-        <div style="width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:var(--color-background-secondary);border:.5px solid var(--color-border-tertiary)">
-          ${dot(p.t, 12)}
-        </div>
-        <div style="flex:1">
-          <div style="font-size:13px;font-weight:600;color:var(--color-text-primary)">${p.n}</div>
-          <div style="font-size:11px;color:var(--color-text-secondary)">${p.count} plants · ${p.sp}</div>
-        </div>
-        <div style="text-align:right">
-          <div style="font-size:11px;font-weight:600;color:#0F6E56">${p.days}</div>
-          <div style="font-size:10px;color:var(--color-text-tertiary)">to harvest</div>
-        </div>
-      </div>`).join('')}
-    </div>
-  </div>
-  <div style="height:20px"></div>
-</div>`; }
-
-// ─── Navigation ───────────────────────────────────────────────────────────────
-let scanTimer = null;
-
-function nav(s) {
-  if (scanTimer) { clearInterval(scanTimer); scanTimer = null; }
-  st.screen = s; st.exp = null;
-  if (s === 'scan') {
-    st.scanned = 0;
-    render();
-    scanTimer = setInterval(() => {
-      st.scanned++;
+    function saveField() {
+      st.fields[st.activeField] = {
+        name: st.fieldName,
+        crop: st.crop,
+        target: st.target,
+        layoutMode: st.layoutMode,
+        chosen: {...st.chosen},
+        placements: {...st.placements},
+        beds: st.beds.map(b => ({...b}))
+      };
+    }
+    function loadField(index) {
+      saveField();
+      st.activeField = clamp(index, 0, st.fields.length - 1);
+      const f = st.fields[st.activeField];
+      st.fieldName = f.name;
+      st.crop = f.crop;
+      st.target = f.target;
+      st.layoutMode = f.layoutMode || 'edge';
+      st.chosen = {...(f.chosen || {})};
+      st.placements = {...(f.placements || {})};
+      st.beds = f.beds.map(b => ({...b}));
+      st.setupBed = 0;
+      st.q = '';
+      st.activeBed = st.beds[0]?.id || 'A1';
       render();
-      if (st.scanned >= beds.length) { clearInterval(scanTimer); scanTimer = null; }
-    }, 900);
-    return;
-  }
-  if (s === 'main') { st.tab = 'dashboard'; }
-  render();
-}
+    }
+    function createField() {
+      saveField();
+      const n = st.fields.length + 1;
+      st.fields.push({
+        name:`Field ${String.fromCharCode(64 + n)}`,
+        crop:'cabai',
+        target:60,
+        layoutMode:'edge',
+        chosen:{},
+        placements:{},
+        beds:[{id:'A1', length:7, width:1.2, ph:6.1, moisture:46, lat:-6.2005, lng:106.8175}]
+      });
+      loadField(st.fields.length - 1);
+    }
+    function removeField() {
+      if (st.fields.length <= 1) return;
+      const removed = st.activeField;
+      st.fields.splice(removed, 1);
+      st.activeField = clamp(removed - 1, 0, st.fields.length - 1);
+      const f = st.fields[st.activeField];
+      st.fieldName = f.name;
+      st.crop = f.crop;
+      st.target = f.target;
+      st.layoutMode = f.layoutMode || 'edge';
+      st.chosen = {...(f.chosen || {})};
+      st.placements = {...(f.placements || {})};
+      st.beds = f.beds.map(b => ({...b}));
+      st.setupBed = 0;
+      st.activeBed = st.beds[0]?.id || 'A1';
+      render();
+    }
+    function startDemo() {
+      saveField();
+      const demo = JSON.parse(JSON.stringify(seedFields[1]));
+      const existing = st.fields.findIndex(f => f.name === demo.name);
+      if (existing >= 0) st.fields[existing] = demo;
+      else st.fields.push(demo);
+      loadField(existing >= 0 ? existing : st.fields.length - 1);
+      st.screen = 'field';
+      render();
+    }
+    function fieldTabs() {
+      return `<div class="field-tabs">
+        ${st.fields.map((f, i) => {
+          const c = crops.find(x => x.id === f.crop) || crops[0];
+          return `<button class="field-tab ${i===st.activeField?'active':''}" onclick="loadField(${i})"><strong>${f.name}</strong><span>${c.common} · ${f.beds.length} bed</span></button>`;
+        }).join('')}
+        <button class="field-tab" onclick="createField()"><strong>+ New field</strong><span>another crop type</span></button>
+      </div>`;
+    }
+    function crop() { return crops.find(x => x.id === st.crop) || crops[0]; }
+    function clamp(v, min, max) { return Math.min(Math.max(v, min), max); }
+    function num(v, fallback) { const n = Number(String(v).replace(',', '.')); return Number.isFinite(n) ? n : fallback; }
+    function fmt(v, d=0) { return new Intl.NumberFormat('id-ID', {maximumFractionDigits:d}).format(v); }
+    function fmtPlain(v, d=2) { return Number(v).toFixed(d).replace(/\.?0+$/, ''); }
+    function fmtPh(v) { return (Math.round(Number(v) * 10) / 10).toFixed(1).replace(/\.0$/, ''); }
+    function fmtRange(r) { return `${fmtPh(r[0])}-${fmtPh(r[1])}`; }
+    function bedArea(b) { return b.length * b.width; }
+    function totalArea() { return st.beds.reduce((a,b) => a + bedArea(b), 0) || 1; }
+    function bedShare(b) { return bedArea(b) / totalArea(); }
+    function selectedCompanion(b) { return st.chosen[b.id] || crop().companions[0]; }
+    function suggestedPlacement(id) {
+      if (['jagung_sela','bunga_matahari','sereh','marigold'].includes(id)) return 'perimeter';
+      if (['kubis','selada','bayam','buncis','kacang_panjang'].includes(id)) return 'between';
+      return 'edge';
+    }
+    function selectedPlacement(b) { return st.placements[b.id] || suggestedPlacement(selectedCompanion(b)) || st.layoutMode; }
+    function placementLabel(mode) {
+      return mode === 'perimeter' ? 'Perimeter' : mode === 'between' ? 'Between rows' : 'Side rows';
+    }
+    function chooseCompanion(bid, id) {
+      st.chosen[bid] = id;
+      st.placements[bid] = suggestedPlacement(id);
+      saveField();
+      render();
+    }
+    function setCompanionPlacement(bid, mode) {
+      st.placements[bid] = mode;
+      saveField();
+      render();
+    }
+    function bedCoord(b, index = 0) {
+      const lat = b.lat ?? live.lat ?? (-6.2 - index * .0002);
+      const lng = b.lng ?? live.long ?? (106.817 + index * .0002);
+      return {lat, lng};
+    }
 
-function showMain(tab) {
-  st.screen = 'main'; st.tab = tab;
-  ['dashboard','beds','sensor','settings'].forEach(id => {
-    const el = document.getElementById('bnav-' + id);
-    if (el) el.className = 'bnav-item' + ((id === tab || (id === 'dashboard' && tab === 'bed')) ? ' active' : '');
-  });
-  render();
-}
+    function rangeScore(value, range, soft, hard) {
+      const gap = Math.max(range[0] - value, value - range[1], 0);
+      if (gap <= soft) return 100;
+      if (gap >= hard) return 35;
+      return Math.round(100 - ((gap - soft) / (hard - soft)) * 55);
+    }
+    function band(score) {
+      if (score >= 82) return {cls:'band-white', label:'Good'};
+      if (score >= 70) return {cls:'band-yellow', label:'Watch'};
+      if (score >= 55) return {cls:'band-orange', label:'Caution'};
+      return {cls:'band-red', label:'High risk'};
+    }
+    function calcBed(b) {
+      const c = crop();
+      const [sx, sy] = c.spacing;
+      const naturalCols = Math.max(1, Math.floor((b.width * 100) / sx));
+      const naturalRows = Math.max(1, Math.floor((b.length * 100) / sy));
+      const naturalCount = naturalCols * naturalRows;
+      const bedTargetKg = st.target * bedShare(b);
+      const neededPlants = Math.max(1, Math.ceil(bedTargetKg / c.yield));
+      const pressure = Math.sqrt(naturalCount / neededPlants);
+      const spacingFactor = clamp(pressure, .58, 1.18);
+      const actualX = Math.max(10, Math.round(sx * spacingFactor));
+      const actualY = Math.max(10, Math.round(sy * spacingFactor));
+      const cols = Math.max(1, Math.floor((b.width * 100) / actualX));
+      const rows = Math.max(1, Math.floor((b.length * 100) / actualY));
+      const count = cols * rows;
+      const yieldKg = count * c.yield;
+      const densityLoss = Math.max(0, .82 - spacingFactor);
+      const quality = clamp(Math.round(100 - densityLoss * 140), 45, 100);
+      const phScore = rangeScore(b.ph, c.ph, .12, .8);
+      const tempScore = rangeScore(live.temp_air, c.temp, 1.5, 6);
+      const moistureScore = rangeScore(b.moisture, [40, 82], 4, 18);
+      const env = Math.round(phScore * .45 + tempScore * .3 + moistureScore * .25);
+      return {c, sx, sy, actualX, actualY, naturalCount, neededPlants, bedTargetKg, cols, rows, count, yieldKg, quality, env, phScore, tempScore, moistureScore, spacingFactor};
+    }
+    function planNote(p) {
+      const q = band(p.quality);
+      const e = band(p.env);
+      if (q.label === 'High risk') return 'Target is forcing a very dense plan. Add bed area or reduce target to protect plant quality.';
+      if (q.label === 'Caution') return 'Spacing is meaningfully tighter than the crop recommendation. This is usable, but monitor airflow and vigor.';
+      if (e.label === 'High risk') return 'Soil or surrounding condition is far outside the recommended crop range.';
+      if (e.label === 'Caution') return 'Environment needs correction before planting for best result.';
+      if (q.label === 'Watch' || e.label === 'Watch') return 'Within watch range. No alarm yet, just keep an eye on this bed.';
+      return 'Recommendation is inside the relaxed safety margin.';
+    }
+    function matchFor(comp, b, index) {
+      const p = calcBed(b);
+      const ph = rangeScore(b.ph, comp.ph || crop().ph, .18, .9);
+      const temp = rangeScore(live.temp_air, comp.temp || crop().temp, 2, 7);
+      const role = comp.kind.includes('Refugia') ? 4 : comp.kind.includes('Ground') ? 1 : 0;
+      return clamp(Math.round(ph * .3 + temp * .25 + p.env * .25 + (96 - index * 5 + role) * .2), 48, 99);
+    }
+    function cropShape(id = st.crop) {
+      const map = {
+        cabai:['triangle','#c9472f'],
+        terung:['circle','#6f4aa2'],
+        jagung:['diamond','#d9a51e'],
+        padi:['square','#9fb957'],
+        singkong:['square','#8a6a3f'],
+        ubi:['diamond','#b96b35'],
+        tomat:['circle','#c55237'],
+        kelapa:['circle','#7b5d35'],
+        kedelai:['circle','#4d9b57'],
+        talas:['diamond','#4d8b72']
+      };
+      return map[id] || ['circle', '#0d6b50'];
+    }
+    function companionShape(id) {
+      const map = {
+        jagung_sela:['diamond','#d9a51e'],
+        marigold:['circle','#d7a11b'],
+        zinnia:['circle','#c45a93'],
+        bunga_matahari:['circle','#e0ad25'],
+        kemangi:['square','#0d6b50'],
+        selada:['square','#86b85b'],
+        bayam:['square','#4f9b65'],
+        buncis:['diamond','#5f9f58'],
+        kacang_panjang:['diamond','#3f8f4c'],
+        arachis:['circle','#66a43f'],
+        krokot:['square','#5e9861'],
+        pegagan:['circle','#54975d'],
+        torenia:['circle','#7d83c9'],
+        sereh:['triangle','#789d3b'],
+        kubis:['square','#6ea85d']
+      };
+      return map[id] || ['square', '#0d6b50'];
+    }
+    function shapeHTML(kind, color, size = 14) {
+      return `<span class="shape ${kind}" style="--c:${color};--s:${size}px"></span>`;
+    }
+    function setGuideStep(step) { st.guideStep = (step + 3) % 3; render(false); }
+    function metricCard(value, label, score = 100, cls = 'band-white') {
+      const tone = cls === 'band-red' ? '#b54141' : cls === 'band-orange' ? '#d77c28' : cls === 'band-yellow' ? '#d1a51a' : '#0d6b50';
+      return `<div class="metric gauge ${cls}" style="--pct:${clamp(score,0,100)}%;--tone:${tone}">
+        <div class="meter-ring"></div>
+        <div><strong>${value}</strong><span>${label}</span></div>
+      </div>`;
+    }
+    function bedMetric(value, label, score = 100, cls = 'band-white') {
+      const tone = cls === 'band-red' ? '#b54141' : cls === 'band-orange' ? '#d77c28' : cls === 'band-yellow' ? '#d1a51a' : '#0d6b50';
+      return `<div class="bed-metric ${cls}" style="--pct:${clamp(score,0,100)}%;--tone:${tone}"><b>${value}</b><span>${label}</span></div>`;
+    }
+    function bedMetricsHTML(b, p, index = 0) {
+      const coord = bedCoord(b, index);
+      return `<div class="bed-metrics">
+        ${bedMetric(fmtPh(b.ph), 'soil pH', p.phScore, band(p.phScore).cls)}
+        ${bedMetric(`${fmtPh(b.moisture)}%`, 'moisture', p.moistureScore, band(p.moistureScore).cls)}
+        ${bedMetric(`${p.quality}%`, 'density', p.quality, band(p.quality).cls)}
+        ${bedMetric(`${coord.lat.toFixed(4)}, ${coord.lng.toFixed(4)}`, 'coordinates', 100, 'band-white')}
+      </div>`;
+    }
+    function spacingGuideHTML(b) {
+      const p = calcBed(b);
+      const compId = selectedCompanion(b);
+      const comp = companionDb[compId];
+      const placement = selectedPlacement(b);
+      const [mainKind, mainColor] = cropShape(st.crop);
+      const [compKind, compColor] = companionShape(compId);
+      const mainCropName = crop().common;
+      const mainCropLower = mainCropName.toLowerCase();
+      const dot = (x, y, kind = mainKind, color = mainColor, size = 13, title = crop().n) =>
+        `<span class="spacing-dot" style="left:${x}%;top:${y}%" title="${title}">${shapeHTML(kind, color, size)}</span>`;
+      const gridLines = [30,50,70].map(x => `<span class="guide-grid-line v" style="left:${x}%"></span>`).join('') +
+        [30,56,82].map(y => `<span class="guide-grid-line h" style="top:${y}%"></span>`).join('');
+      const scenario = st.guideStep % 3;
+      const scenarioNames = [`${mainCropName} gap`, 'Row gap', 'Companion'];
+      const cropGrid = [
+        [30,30], [50,30], [70,30],
+        [30,56], [50,56], [70,56],
+        [30,82], [50,82], [70,82]
+      ];
+      const mainDots = cropGrid.map(([x,y]) => dot(x,y)).join('');
+      const cropOnly = `${mainDots}
+        <span class="spacing-line h" style="left:30%;width:20%;top:56%"></span>
+        <span class="spacing-label" style="left:40%;top:45%">${p.actualX} cm between ${mainCropLower}</span>`;
+      const rowOnly = `${mainDots}
+        <span class="spacing-line v" style="left:50%;top:30%;height:26%"></span>
+        <span class="spacing-label" style="left:62%;top:43%">${p.actualY} cm row gap</span>`;
+      const companionOnly = placement === 'perimeter'
+        ? `<span class="companion-strip" style="left:23%;right:23%;top:7%;height:18%"></span>
+          ${[30,50,70].map(x => dot(x,13,compKind,compColor,15,comp.n)).join('')}
+          ${[30,50,70].map(x => dot(x,56)).join('')}
+          <span class="spacing-line v" style="left:30%;top:13%;height:43%"></span>
+          <span class="spacing-label" style="left:43%;top:34%">${comp.common.toLowerCase()} edge to ${mainCropLower}</span>`
+        : placement === 'between'
+          ? `${[30,50,70].map(x => dot(x,30)).join('')}${[30,50,70].map(x => dot(x,82)).join('')}
+            ${dot(40,56,compKind,compColor,12,comp.n)}${dot(60,56,compKind,compColor,12,comp.n)}
+            <span class="companion-strip" style="left:36%;right:36%;top:42%;height:28%"></span>
+            <span class="spacing-line v" style="left:40%;top:30%;height:26%"></span>
+            <span class="spacing-label" style="left:56%;top:43%">companion between rows</span>`
+          : `${[30,50,70].map(x => dot(x,30)).join('')}${[30,50,70].map(x => dot(x,56)).join('')}${[30,50,70].map(x => dot(x,82)).join('')}
+            ${dot(17,56,compKind,compColor,13,comp.n)}${dot(83,56,compKind,compColor,13,comp.n)}
+            <span class="companion-strip" style="left:10%;top:22%;bottom:10%;width:14%"></span><span class="companion-strip" style="right:10%;top:22%;bottom:10%;width:14%"></span>
+            <span class="spacing-line h" style="left:17%;width:13%;top:56%"></span>
+            <span class="spacing-label" style="left:26%;top:66%">side companion offset</span>`;
+      const scenarioBody = [cropOnly, rowOnly, companionOnly][scenario];
+      const captions = [
+        `Use this repeat for plant-to-plant distance inside one ${mainCropLower} row.`,
+        `Use this repeat for the next ${mainCropLower} row, measured center to center.`,
+        `${comp.n} uses ${placementLabel(placement).toLowerCase()} placement, so measure it separately from ${mainCropLower} spacing.`
+      ];
+      return `<div class="spacing-guide">
+        <div class="spacing-guide-head">
+          <button class="guide-arrow" onclick="setGuideStep(${scenario - 1})" aria-label="Previous spacing guide">‹</button>
+          <div>
+            <strong>Spacing guide</strong>
+            <span>${scenarioNames[scenario]} · zoomed grid</span>
+          </div>
+          <button class="guide-arrow" onclick="setGuideStep(${scenario + 1})" aria-label="Next spacing guide">›</button>
+        </div>
+        <div class="guide-tabs">
+          ${scenarioNames.map((name, idx) => `<button class="guide-tab ${idx===scenario?'active':''}" onclick="setGuideStep(${idx})">${name}</button>`).join('')}
+        </div>
+        <div class="spacing-stage">
+          ${gridLines}
+          ${scenarioBody}
+        </div>
+        <p class="guide-caption">${captions[scenario]}</p>
+        <div class="legend">
+          <span class="chip">${shapeHTML(mainKind, mainColor, 10)} ${crop().n}</span>
+          <span class="chip">${shapeHTML(compKind, compColor, 10)} ${comp.n}: ${placementLabel(placement)}</span>
+        </div>
+      </div>`;
+    }
+    function setField(k, v) {
+      if (k === 'target') st.target = clamp(num(v, st.target), 1, 50000);
+      else st[k] = v;
+      saveField();
+      render();
+    }
+    function setCrop(id) { st.crop = id; st.chosen = {}; saveField(); render(); }
+    function setLayoutMode(mode) { st.layoutMode = mode; saveField(); render(); }
+    function setBed(i) { st.setupBed = clamp(i, 0, st.beds.length - 1); render(); }
+    function bedLabel(i) { return `${String.fromCharCode(65 + Math.floor(i / 3))}${(i % 3) + 1}`; }
+    function addBed() {
+      const i = st.beds.length;
+      st.beds.push({id:bedLabel(i), length:7, width:1.2, ph:Number((6.2 - (i % 3) * .25).toFixed(1)), moisture:46, lat:-6.2001 - i * .0002, lng:106.8171 + i * .0002});
+      st.setupBed = i;
+      saveField();
+      render();
+    }
+    function removeBed(i) {
+      if (st.beds.length <= 1) return;
+      delete st.chosen[st.beds[i].id];
+      st.beds.splice(i,1);
+      st.beds.forEach((b, idx) => b.id = bedLabel(idx));
+      st.setupBed = clamp(st.setupBed, 0, st.beds.length - 1);
+      st.activeBed = st.beds[0]?.id || 'A1';
+      saveField();
+      render();
+    }
+    function editBed(i, key, value) {
+      const limits = key === 'length' ? [1, 200] : [0.4, 20];
+      st.beds[i][key] = clamp(Math.round(num(value, st.beds[i][key]) * 100) / 100, limits[0], limits[1]);
+      saveField();
+      render();
+    }
+    function adjustBed(i, key, delta) {
+      const limits = key === 'length' ? [1, 200] : [0.4, 20];
+      st.beds[i][key] = clamp(Math.round((st.beds[i][key] + delta) * 100) / 100, limits[0], limits[1]);
+      saveField();
+      render();
+    }
+    function numberControl(i, key, label, unit, step) {
+      const b = st.beds[i];
+      return `<div class="field">
+        <label>${label}</label>
+        <div class="num-control">
+          <button class="stepper" onclick="adjustBed(${i},'${key}',-${step})">-</button>
+          <input class="input" inputmode="decimal" type="text" pattern="[0-9]*[.,]?[0-9]*" value="${fmtPlain(b[key])}" onchange="editBed(${i},'${key}',this.value)" onkeydown="if(event.key==='Enter'){editBed(${i},'${key}',this.value);this.blur()}" aria-label="${label}">
+          <button class="stepper" onclick="adjustBed(${i},'${key}',${step})">+</button>
+        </div>
+        <p class="sub" style="font-size:12px;margin-top:0">${unit}</p>
+      </div>`;
+    }
 
-function render() {
-  const s = st.screen;
-  // statusbar theme
-  const sb = document.getElementById('sbar');
-  if (sb) sb.className = 'sbar ' + (s === 'login' ? 'sbar-dark' : 'sbar-light');
-  // clock
-  const tc = document.getElementById('sbar-time');
-  if (tc) { const n = new Date(); tc.textContent = n.getHours() + ':' + String(n.getMinutes()).padStart(2,'0'); }
-  // bottom nav
-  const bn = document.getElementById('bottom-nav');
-  if (bn) bn.style.display = s === 'main' ? 'flex' : 'none';
-  // content
-  const scr = document.getElementById('scr');
-  if (!scr) return;
-  const map = {login:S_login, crop:S_crop, scan:S_scan, ph:S_ph, companion:S_companion};
-  if (s in map) { scr.innerHTML = map[s](); }
-  else if (s === 'main') {
-    const t = {'dashboard':T_dashboard,'beds':T_beds,'sensor':T_sensor,'settings':T_settings,'bed':T_bed};
-    scr.innerHTML = (t[st.tab] || T_dashboard)();
-  }
-  scr.scrollTop = 0;
-}
+    let scanTimer = null;
+    function nav(screen) {
+      if (scanTimer) { clearInterval(scanTimer); scanTimer = null; }
+      st.screen = screen;
+      if (screen === 'scan') {
+        st.scanned = 0;
+        render();
+        scanTimer = setInterval(() => {
+          st.scanned += 1;
+          render(false);
+          if (st.scanned >= st.beds.length) { clearInterval(scanTimer); scanTimer = null; }
+        }, 650);
+        return;
+      }
+      if (screen === 'main') st.tab = 'dashboard';
+      render();
+    }
+    function showMain(tab) { st.screen = 'main'; st.tab = tab; render(); }
 
-setInterval(() => {
-  const tc = document.getElementById('sbar-time');
-  if (tc) { const n = new Date(); tc.textContent = n.getHours() + ':' + String(n.getMinutes()).padStart(2,'0'); }
-}, 30000);
+    function S_login() {
+      return `<section class="login">
+        <div class="logo-mark">🌿</div>
+        <h1>PolyFarm</h1>
+        <p class="sub">Mobile planning for real-scale polyculture bedengan.</p>
+        <div class="stack" style="margin-top:34px">
+          <input class="input" placeholder="Email address">
+          <input class="input" type="password" placeholder="Password">
+          <button class="btn" onclick="nav('field')">Start field setup</button>
+        </div>
+      </section>`;
+    }
 
-setupMQTT();
-render();
-</script>
+    function S_field() {
+      const list = crops.filter(c => `${c.n} ${c.common} ${c.scientific}`.toLowerCase().includes(st.q.toLowerCase()));
+      return `<section>
+        <div class="top">
+          <div class="step">Step 1 of 5</div>
+          <h1>Register field target</h1>
+          <p class="sub">One production target for the whole field. Each bedengan receives its share from the real measured area.</p>
+        </div>
+        <div class="section stack">
+          ${fieldTabs()}
+          <div class="demo-strip">
+            <div style="display:flex;justify-content:space-between;gap:12px;align-items:center">
+              <div>
+                <strong>Demo mode</strong>
+                <p>Soybean field with corn companion planted only around the bed perimeter to protect center sunlight.</p>
+              </div>
+              <button class="btn" style="width:auto;min-height:40px;background:#9fe1cb;border-color:#9fe1cb;color:var(--leaf-2)" onclick="startDemo()">Use demo</button>
+            </div>
+          </div>
+          <div class="grid2">
+            <div class="field">
+              <label>Field name</label>
+              <input class="input" value="${st.fieldName}" onchange="setField('fieldName',this.value)">
+            </div>
+            <div class="field">
+              <label>Total target yield (kg)</label>
+              <input class="input" inputmode="decimal" type="number" value="${fmtPlain(st.target)}" onchange="setField('target',this.value)" onkeydown="if(event.key==='Enter')this.blur()">
+            </div>
+          </div>
+          <button class="danger-btn" ${st.fields.length <= 1 ? 'disabled' : ''} onclick="removeField()">Remove current field</button>
+          <div class="field">
+            <label>Main crop</label>
+            <input class="input" placeholder="Search crop from Plant Database" value="${st.q}" oninput="st.q=this.value;render(false)">
+          </div>
+          <div class="grid2">
+            ${list.map(c => `<button class="crop-card ${c.id===st.crop?'selected':''}" onclick="setCrop('${c.id}')">
+              <span class="crop-visual">${c.visual}</span>
+              <span class="crop-icon">${c.visual}</span>
+              <h3>${c.common}</h3>
+              <p>pH ${fmtRange(c.ph)} - ${c.spacing[0]}x${c.spacing[1]} cm</p>
+              <div class="sci">${c.n}<br>${c.scientific}</div>
+            </button>`).join('')}
+          </div>
+          <div class="panel soft">
+            <div class="chip">${crop().visual} ${crop().n}</div>
+            <p class="sub">Database loaded: spacing ${crop().spacing[0]}x${crop().spacing[1]} cm, pH ${fmtRange(crop().ph)}, temp ${crop().temp[0]}-${crop().temp[1]}°C. ${crop().special}.</p>
+          </div>
+          <button class="btn" onclick="nav('beds')">Continue to bedengan sizes</button>
+        </div>
+      </section>`;
+    }
+
+    function S_beds() {
+      const i = st.setupBed;
+      const b = st.beds[i];
+      const p = calcBed(b);
+      return `<section>
+        <div class="top">
+          <div class="step">Step 2 of 5</div>
+          <h1>Set each bedengan</h1>
+          <p class="sub">Enter width and length bed by bed. The keyboard input applies on Enter or when the field loses focus, so typing does not fight the screen.</p>
+        </div>
+        <div class="section stack">
+          <div class="bed-tabs">
+            ${st.beds.map((bed, idx) => `<button class="bed-tab ${idx===i?'active':''}" onclick="setBed(${idx})">${bed.id}</button>`).join('')}
+            <button class="bed-tab" onclick="addBed()">+ Add</button>
+          </div>
+          <div class="panel stack">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+              <div>
+                <h2>Bed ${b.id}</h2>
+                <p class="sub">${fmt(bedArea(b),2)} m² - ${fmt(p.bedTargetKg,1)} kg target share</p>
+              </div>
+              <button class="btn ghost" style="width:auto;min-height:40px" onclick="removeBed(${i})">Remove</button>
+            </div>
+            <div class="grid2">
+              ${numberControl(i,'length','Length','meters',.5)}
+              ${numberControl(i,'width','Width','meters',.1)}
+            </div>
+            <div class="metric-row">
+              <div class="metric"><strong>${fmt(p.naturalCount)}</strong><span>plants at database spacing</span></div>
+              <div class="metric"><strong>${fmt(p.neededPlants)}</strong><span>plants for target</span></div>
+              <div class="metric ${band(p.quality).cls}"><strong>${p.quality}%</strong><span>density quality</span></div>
+            </div>
+            <div class="panel ${band(p.quality).cls}" style="padding:12px">
+              <strong>${band(p.quality).label}</strong>
+              <p class="sub" style="font-size:13px;margin-top:4px">${planNote(p)}</p>
+            </div>
+          </div>
+          <button class="btn" onclick="nav('scan')">Start bed scan</button>
+        </div>
+      </section>`;
+    }
+
+    function S_scan() {
+      const pct = Math.round((st.scanned / st.beds.length) * 100);
+      return `<section>
+        <div class="top">
+          <div class="step">Step 3 of 5</div>
+          <h1>Scan bedengan</h1>
+          <p class="sub">Insert the sensor into each bed. Soil pH and moisture will refine the recommendation before layout generation.</p>
+        </div>
+        <div class="section stack">
+          <div class="scan-ring" style="--scan:${pct}%"><span>🌱</span></div>
+          <div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:7px;font-size:13px;font-weight:800;color:var(--leaf-2)">
+              <span>Scan progress</span><span>${st.scanned}/${st.beds.length}</span>
+            </div>
+            <div class="progress" style="--w:${pct}%"><span></span></div>
+          </div>
+          ${st.beds.map((b, idx) => `<div class="panel" style="display:flex;justify-content:space-between;align-items:center">
+            <div><strong>Bed ${b.id}</strong><p class="sub" style="font-size:12px">pH ${idx < st.scanned ? fmtPh(b.ph) : 'waiting'} - moisture ${idx < st.scanned ? fmtPh(b.moisture) + '%' : 'waiting'}</p></div>
+            <span class="chip">${idx < st.scanned ? 'Detected' : 'Pending'}</span>
+          </div>`).join('')}
+          <button class="btn" ${st.scanned < st.beds.length ? 'disabled' : ''} onclick="nav('soil')">${st.scanned < st.beds.length ? 'Scanning...' : 'View soil result'}</button>
+        </div>
+      </section>`;
+    }
+
+    function S_soil() {
+      const plans = st.beds.map(calcBed);
+      const avgPh = st.beds.reduce((a,b) => a + b.ph, 0) / st.beds.length;
+      const avgEnv = Math.round(plans.reduce((a,p) => a + p.env, 0) / plans.length);
+      return `<section>
+        <div class="top">
+          <div class="step">Step 4 of 5</div>
+          <h1>Soil and density check</h1>
+          <p class="sub">Warnings now use relaxed bands: white, light yellow, orange, and red. Small differences stay quiet.</p>
+        </div>
+        <div class="section stack">
+          <div class="metric-row">
+            ${metricCard(fmtPh(avgPh), 'average pH', rangeScore(avgPh, crop().ph, .12, .8), band(rangeScore(avgPh, crop().ph, .12, .8)).cls)}
+            ${metricCard(`${avgEnv}%`, 'environment fit', avgEnv, band(avgEnv).cls)}
+            ${metricCard(fmt(st.target), 'kg total target', 78, 'band-white')}
+          </div>
+          ${st.beds.map((b, index) => {
+            const p = calcBed(b);
+            return `<div class="panel ${band(Math.min(p.quality,p.env)).cls}">
+              <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start">
+                <div>
+                  <h3>Bed ${b.id}</h3>
+                  <p class="sub">pH ${fmtPh(b.ph)} - target share ${fmt(p.bedTargetKg,1)} kg - ${p.actualX}x${p.actualY} cm adjusted spacing</p>
+                </div>
+                <span class="chip">${band(Math.min(p.quality,p.env)).label}</span>
+              </div>
+              ${bedMetricsHTML(b, p, index)}
+              <p class="sub" style="font-size:13px">${planNote(p)}</p>
+            </div>`;
+          }).join('')}
+          <button class="btn" onclick="nav('companion')">Choose companion plants</button>
+        </div>
+      </section>`;
+    }
+
+    function S_companion() {
+      return `<section>
+        <div class="top">
+          <div class="step">Step 5 of 5</div>
+          <h1>Companion per bed</h1>
+          <p class="sub">Recommendations are tailored to each bedengan using target pressure, pH, moisture, and the crop database.</p>
+        </div>
+        <div class="section stack">
+          <div class="panel stack">
+            <div>
+              <h2>Companion placement</h2>
+              <p class="sub">Use perimeter mode for tall companions like corn, so the center crop keeps better sunlight.</p>
+            </div>
+            <div class="segmented">
+              <button class="segment ${st.layoutMode==='edge'?'active':''}" onclick="setLayoutMode('edge')">Side rows</button>
+              <button class="segment ${st.layoutMode==='perimeter'?'active':''}" onclick="setLayoutMode('perimeter')">Perimeter</button>
+              <button class="segment ${st.layoutMode==='between'?'active':''}" onclick="setLayoutMode('between')">Between</button>
+            </div>
+          </div>
+          ${st.beds.map(b => {
+            const p = calcBed(b);
+            const ids = crop().companions;
+            return `<div class="panel stack">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <h2>Bed ${b.id}</h2>
+                <span class="chip">${crop().common}</span>
+              </div>
+              ${ids.map((id, index) => {
+                const comp = companionDb[id];
+                const selected = selectedCompanion(b) === id;
+                const m = matchFor(comp, b, index);
+                const recommended = suggestedPlacement(id);
+                const placement = selected ? selectedPlacement(b) : recommended;
+                return `<div class="comp-card ${selected?'selected':''}">
+                  <div class="comp-head">
+                    <div class="comp-icon">${comp.visual}</div>
+                    <div style="text-align:left">
+                      <h3>${comp.common}</h3>
+                      <p class="sub" style="margin-top:2px">${comp.kind}</p>
+                    </div>
+                    <div class="match">${m}%</div>
+                  </div>
+                  <p class="detail">${comp.note}</p>
+                  <div class="detail-grid">
+                    <div class="tiny-box"><b>Database spacing</b>${comp.spacing[0]}x${comp.spacing[1]} cm - pH ${fmtRange(comp.ph)}</div>
+                    <div class="tiny-box"><b>Suggested layout</b>${placementLabel(recommended)} - ${comp.detail}</div>
+                  </div>
+                  <div class="tiny-box" style="margin-top:8px"><b>Care note</b>${comp.caution}</div>
+                  ${selected ? `<div class="segmented" style="margin-top:10px">
+                    <button class="segment mini ${placement==='edge'?'active':''}" onclick="setCompanionPlacement('${b.id}','edge')">Side rows</button>
+                    <button class="segment mini ${placement==='perimeter'?'active':''}" onclick="setCompanionPlacement('${b.id}','perimeter')">Perimeter</button>
+                    <button class="segment mini ${placement==='between'?'active':''}" onclick="setCompanionPlacement('${b.id}','between')">Between</button>
+                  </div>` : ''}
+                  <button class="btn ${selected?'':'secondary'}" style="margin-top:12px" onclick="chooseCompanion('${b.id}','${id}')">${selected ? 'Selected' : 'Use for this bed'}</button>
+                </div>`;
+              }).join('')}
+            </div>`;
+          }).join('')}
+          <button class="btn" onclick="nav('main')">Generate scaled layout</button>
+        </div>
+      </section>`;
+    }
+
+    function layoutHTML(b) {
+      const p = calcBed(b);
+      const compId = selectedCompanion(b);
+      const comp = companionDb[compId];
+      const placement = selectedPlacement(b);
+      const padX = p.actualX / 2;
+      const padY = p.actualY / 2;
+      const dots = [];
+      const [mainKind, mainColor] = cropShape(st.crop);
+      const [compKind, compColor] = companionShape(compId);
+      const reservePerimeter = placement === 'perimeter' && p.rows > 4 && p.cols > 2;
+      for (let r = 0; r < p.rows; r++) {
+        for (let c = 0; c < p.cols; c++) {
+          if (reservePerimeter && (r === 0 || r === p.rows - 1 || c === 0 || c === p.cols - 1)) continue;
+          const x = ((padX + c * p.actualX) / (b.width * 100)) * 100;
+          const y = ((padY + r * p.actualY) / (b.length * 100)) * 100;
+          dots.push(`<span class="plant-dot shape-dot" style="left:${x}%;top:${y}%" title="${crop().n}">${shapeHTML(mainKind, mainColor, 13)}</span>`);
+        }
+      }
+      const addComp = (x, y) => dots.push(`<span class="plant-dot shape-dot" style="left:${x}%;top:${y}%" title="${comp.n}">${shapeHTML(compKind, compColor, compId === 'jagung_sela' ? 16 : 12)}</span>`);
+      const compEvery = Math.max(1, Math.floor(p.rows / 5));
+      if (placement === 'perimeter') {
+        const topEvery = Math.max(1, Math.floor(p.cols / 4));
+        for (let c = 0; c < p.cols; c += topEvery) {
+          const x = ((padX + c * p.actualX) / (b.width * 100)) * 100;
+          addComp(x, 3);
+          addComp(x, 97);
+        }
+        for (let r = 0; r < p.rows; r += compEvery) {
+          const y = ((padY + r * p.actualY) / (b.length * 100)) * 100;
+          addComp(3, y);
+          addComp(97, y);
+        }
+      } else if (placement === 'between') {
+        for (let r = 1; r < p.rows; r += 4) {
+          const x = 50;
+          const y = ((padY + r * p.actualY) / (b.length * 100)) * 100;
+          addComp(x, y);
+        }
+      } else {
+        for (let r = 0; r < p.rows; r += compEvery) {
+          const y = ((padY + r * p.actualY) / (b.length * 100)) * 100;
+          addComp(4, y);
+          addComp(96, y);
+        }
+      }
+      const aspectH = clamp((b.length / b.width) * 260, 260, 620);
+      const layoutW = Math.min(360, Math.max(230, b.width / b.length * aspectH));
+      return `<div class="layout-wrap">
+        <div class="scale-stage">
+          <div class="scale-left"><span>0m</span><span>${fmtPlain(b.length)}m</span></div>
+          <div class="layout" style="--layout-w:${layoutW}px;--layout-h:${aspectH}px;--cell-x:${Math.max(6, p.actualX / (b.width * 100) * 100)}%;--cell-y:${Math.max(3, p.actualY / (b.length * 100) * 100)}%">
+            ${dots.join('')}
+          </div>
+          <div class="scale-bottom"><span>0m</span><span>${fmtPlain(b.width)}m</span></div>
+        </div>
+      </div>
+      <div class="legend">
+        <span class="chip">${shapeHTML(mainKind, mainColor, 10)} ${crop().n}: ${p.actualX}x${p.actualY} cm</span>
+        <span class="chip">${shapeHTML(compKind, compColor, 10)} ${comp.n}: ${placementLabel(placement)}</span>
+        <span class="chip">Scale ${fmtPlain(b.width)}m x ${fmtPlain(b.length)}m</span>
+      </div>`;
+    }
+
+    function T_dashboard() {
+      const totalYield = st.beds.reduce((a,b) => a + calcBed(b).yieldKg, 0);
+      return `<section>
+        <div class="top">
+          <div class="step">${st.fieldName}</div>
+          <h1>${crop().common} field plan</h1>
+          <p class="sub">${st.beds.length} bedengan - estimated ${fmt(totalYield,1)} kg from ${fmt(st.target)} kg target.</p>
+        </div>
+        <div class="section stack">
+          ${fieldTabs()}
+        </div>
+        <div class="section dashboard-grid" style="padding-top:0">
+          <div class="stack">
+            <div class="metric-row">
+              ${metricCard(fmt(totalArea(),1), 'm² planted', Math.min(100,totalArea()*5), 'band-white')}
+              ${metricCard(fmt(totalYield,1), 'kg estimate', Math.min(100,(totalYield/st.target)*100), band(Math.min(100,(totalYield/st.target)*100)).cls)}
+              ${metricCard(fmtPh(live.ph_soil), 'live pH', rangeScore(live.ph_soil, crop().ph, .12, .8), band(rangeScore(live.ph_soil, crop().ph, .12, .8)).cls)}
+            </div>
+            ${st.beds.map((b, index) => {
+              const p = calcBed(b);
+              return `<button class="panel ${st.activeBed===b.id?'soft':''}" onclick="st.activeBed='${b.id}';showMain('dashboard')" style="text-align:left;width:100%">
+                <div style="display:flex;justify-content:space-between;gap:10px;align-items:center">
+                  <div><h3>Bed ${b.id}</h3><p class="sub">${p.count} ${crop().common} - ${p.actualX}x${p.actualY} cm - pH ${fmtPh(b.ph)}</p></div>
+                  <span class="chip ${band(Math.min(p.quality,p.env)).cls}">${band(Math.min(p.quality,p.env)).label}</span>
+                </div>
+                ${bedMetricsHTML(b, p, index)}
+              </button>`;
+            }).join('')}
+          </div>
+          <div class="panel stack">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <h2>Bed ${st.activeBed}</h2>
+              <span class="chip">real scale</span>
+            </div>
+            ${layoutHTML(st.beds.find(b => b.id === st.activeBed) || st.beds[0])}
+          </div>
+        </div>
+      </section>`;
+    }
+    function T_beds() {
+      return `<section>
+        <div class="top"><h1>Bed details</h1><p class="sub">Each bed keeps independent size, pH, moisture, companion, and scale output.</p></div>
+        <div class="section stack">
+          ${st.beds.map(b => {
+            const p = calcBed(b);
+            return `<div class="panel stack">
+              <div style="display:flex;justify-content:space-between;align-items:center"><h2>Bed ${b.id}</h2><span class="chip">${fmtPlain(b.width)}m x ${fmtPlain(b.length)}m</span></div>
+              <div class="metric-row">
+                <div class="metric"><strong>${p.count}</strong><span>main plants</span></div>
+                <div class="metric ${band(p.quality).cls}"><strong>${p.quality}%</strong><span>density</span></div>
+                <div class="metric ${band(p.env).cls}"><strong>${p.env}%</strong><span>environment</span></div>
+              </div>
+              ${spacingGuideHTML(b)}
+              ${layoutHTML(b)}
+            </div>`;
+          }).join('')}
+        </div>
+      </section>`;
+    }
+    function T_sensor() {
+      return `<section>
+        <div class="top"><h1>Live sensor</h1><p class="sub">MQTT data updates the environmental scoring without changing the registered bed dimensions.</p></div>
+        <div class="section stack">
+          ${[
+            ['Air temp', `${fmtPh(live.temp_air)}°C`, '🌡️'],
+            ['Air humidity', `${fmtPh(live.hum_air)}%`, '💧'],
+            ['Soil moisture', `${fmtPh(live.hum_soil)}%`, '〰️'],
+            ['Soil pH', fmtPh(live.ph_soil), '🧪']
+          ].map(m => `<div class="panel" style="display:flex;align-items:center;gap:14px">
+            <div class="crop-icon" style="margin:0">${m[2]}</div><div><h2>${m[1]}</h2><p class="sub">${m[0]}</p></div>
+          </div>`).join('')}
+        </div>
+      </section>`;
+    }
+    function T_settings() {
+      return `<section>
+        <div class="top"><h1>Settings</h1><p class="sub">Field setup can be adjusted any time and the layout will recompute from the database.</p></div>
+        <div class="section stack">
+          <button class="btn secondary" onclick="nav('field')">Edit crop and target</button>
+          <button class="btn secondary" onclick="nav('beds')">Edit bedengan sizes</button>
+          <button class="btn ghost" onclick="nav('login')">Sign out</button>
+        </div>
+      </section>`;
+    }
+
+    function render(resetScroll = true) {
+      const scr = document.getElementById('scr');
+      const navEl = document.getElementById('bottom-nav');
+      navEl.classList.toggle('show', st.screen === 'main');
+      document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.tab === st.tab || (btn.dataset.tab === 'dashboard' && st.tab === 'bed')));
+      const screens = {login:S_login, field:S_field, beds:S_beds, scan:S_scan, soil:S_soil, companion:S_companion};
+      if (screens[st.screen]) scr.innerHTML = screens[st.screen]();
+      else {
+        const tabs = {dashboard:T_dashboard, beds:T_beds, sensor:T_sensor, settings:T_settings};
+        scr.innerHTML = (tabs[st.tab] || T_dashboard)();
+      }
+      if (resetScroll) scr.scrollTop = 0;
+      const now = new Date();
+      document.getElementById('clock').textContent = `${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
+    }
+
+    function setupMQTT() {
+      if (!window.mqtt) return;
+      try {
+        const client = mqtt.connect('wss://broker.emqx.io:8084/mqtt', {clientId:'polyfarm_' + Math.random().toString(16).slice(2), reconnectPeriod:2500});
+        client.on('connect', () => {
+          document.getElementById('mqtt-dot').className = 'mqtt-dot ok';
+          client.subscribe('hackviet/data/sensors');
+          client.subscribe('hackviet/data/gps');
+        });
+        client.on('error', () => document.getElementById('mqtt-dot').className = 'mqtt-dot err');
+        client.on('message', (topic, msg) => {
+          try {
+            const d = JSON.parse(msg.toString());
+            if (topic.includes('sensors')) {
+              ['temp_air','hum_air','hum_soil','ph_soil'].forEach(k => { if (d[k] != null) live[k] = Number(d[k]); });
+              live.ts = d.timestamp || live.ts;
+              if (st.screen === 'main') render(false);
+            }
+            if (topic.includes('gps')) { live.lat = d.lat ?? live.lat; live.long = d.long ?? live.long; }
+          } catch(e) {}
+        });
+      } catch(e) {}
+    }
+
+    setInterval(() => {
+      const now = new Date();
+      document.getElementById('clock').textContent = `${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
+    }, 30000);
+    setupMQTT();
+    render();
+  </script>
 </body>
 </html>
