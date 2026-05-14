@@ -90,6 +90,14 @@ const unsigned long MQTT_RETRY_DELAY_MS = 3000;
 const unsigned long MQTT_CONNECT_ATTEMPT_INTERVAL_MS = 3000;
 const unsigned long RESULT_HOLD_MS = 3500;
 
+// -------------------- Demo / simulation mode --------------------
+// Activates automatically after SIM808 stays unreachable for this long.
+const unsigned long DEMO_ACTIVATE_TIMEOUT_MS = 5000;
+// Bandung city center; each GPS refresh adds up to ~10 km of jitter.
+const double DEMO_LAT_CENTER = -6.9175;
+const double DEMO_LON_CENTER = 107.6191;
+const double DEMO_COORD_JITTER_DEG = 0.090; // 0.090° ≈ 10 km
+
 HardwareSerial sim808(2);
 WiFiClient wifiClient;
 PubSubClient mqttClient(wifiClient);
@@ -101,8 +109,10 @@ unsigned long lastDisplayRefreshMs = 0;
 unsigned long lastButtonChangeMs = 0;
 unsigned long lastMqttConnectAttemptMs = 0;
 unsigned long lastAttemptResultMs = 0;
+unsigned long sim808NotReadyMs = 0;
 uint8_t animationFrame = 0;
 bool sim808Ready = false;
+bool demoModeActive = false;
 bool displayReady = false;
 bool lastButtonReading = HIGH;
 bool stableButtonState = HIGH;
@@ -173,6 +183,8 @@ void loop() {
   processCaptureRequest();
 
   unsigned long now = millis();
+
+  checkAndActivateDemoMode();
 
   if (now - lastGpsRefreshMs >= GPS_REFRESH_INTERVAL_MS) {
     lastGpsRefreshMs = now;
@@ -301,7 +313,44 @@ void setupSim808Gps() {
   Serial.println(F("SIM808 GPS commands sent. Wait for outdoor GPS fix."));
 }
 
+// Jitter the fake fix each refresh so the dashboard looks live.
+void injectDemoGpsFix() {
+  long latJitter = random(-1000, 1001); // -1000..1000 → * 0.000090 = ±0.090°
+  long lonJitter = random(-1000, 1001);
+
+  gps.hasFix = true;
+  gps.latitude  = DEMO_LAT_CENTER + latJitter * (DEMO_COORD_JITTER_DEG / 1000.0);
+  gps.longitude = DEMO_LON_CENTER + lonJitter * (DEMO_COORD_JITTER_DEG / 1000.0);
+  gps.fixStatus = "Location 3D Fix";
+  gps.timestamp = uptimeTimestamp();
+  gps.rawLatitude  = String(gps.latitude, 6);
+  gps.rawLongitude = String(gps.longitude, 6);
+}
+
+void activateDemoMode() {
+  demoModeActive = true;
+  sim808Ready = true;
+  injectDemoGpsFix();
+  Serial.println(F("DEMO MODE ACTIVE: SIM808 simulated, fake Bandung GPS injected."));
+}
+
+// Starts a 5-second timer the moment SIM808 is found unreachable;
+// flips into demo mode once the timer expires.
+void checkAndActivateDemoMode() {
+  if (demoModeActive) return;
+  if (sim808Ready) { sim808NotReadyMs = 0; return; }
+
+  unsigned long now = millis();
+  if (sim808NotReadyMs == 0) { sim808NotReadyMs = now; return; }
+  if (now - sim808NotReadyMs >= DEMO_ACTIVATE_TIMEOUT_MS) activateDemoMode();
+}
+
 void refreshGps() {
+  if (demoModeActive) {
+    injectDemoGpsFix();
+    return;
+  }
+
   if (!sim808Ready) {
     setupSim808Gps();
     return;
@@ -420,11 +469,11 @@ bool publishGpsIfFixed(String timestamp) {
 }
 
 int readSoilMoisturePercent() {
-  int raw = analogRead(SOIL_AO_PIN);
+  if (demoModeActive) return random(40, 81); // 40–80 % inclusive
 
+  int raw = analogRead(SOIL_AO_PIN);
   int percent = map(raw, SOIL_DRY_RAW, SOIL_WET_RAW, 0, 100);
   percent = constrain(percent, 0, 100);
-
   return percent;
 }
 
