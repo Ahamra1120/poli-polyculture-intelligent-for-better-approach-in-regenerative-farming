@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -122,7 +122,7 @@
     .btn.ghost { background: var(--paper); color: var(--leaf-2); border-color: var(--line); }
     .btn:disabled { background: #edf1ee; color: #9aa89f; border-color: #edf1ee; cursor: default; }
     .crop-card {
-      min-height: 136px;
+      min-height: 116px;
       text-align: left;
       border: 1px solid var(--line);
       background: var(--paper);
@@ -153,7 +153,7 @@
       place-items: center;
       background: #edf8f1;
       font-size: 25px;
-      margin-bottom: 26px;
+      margin-bottom: 14px;
       position: relative;
       z-index: 1;
     }
@@ -197,86 +197,59 @@
       font-size: 12px;
       font-weight: 800;
     }
-    .metric-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-    .metric {
+    .plain-list {
+      display: grid;
+      gap: 8px;
+    }
+    .plain-item {
+      display: grid;
+      grid-template-columns: 28px 1fr;
+      gap: 10px;
+      align-items: start;
       border: 1px solid var(--line);
       border-radius: var(--radius);
-      padding: 10px;
       background: var(--paper);
-      position: relative;
-      overflow: hidden;
+      padding: 11px;
     }
-    .metric::after {
-      content: "";
-      position: absolute;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      height: 5px;
-      background: linear-gradient(90deg, var(--leaf) var(--pct, 0%), transparent 0);
-      opacity: .78;
-    }
-    .metric.gauge {
-      display: grid;
-      grid-template-columns: 42px 1fr;
-      gap: 10px;
-      align-items: center;
-      min-height: 82px;
-    }
-    .meter-ring {
-      width: 42px;
-      height: 42px;
-      border-radius: 50%;
+    .plain-item i {
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
       display: grid;
       place-items: center;
-      background: conic-gradient(var(--tone, var(--leaf)) var(--pct, 0%), #e5f0e9 0);
+      background: var(--mist);
+      color: var(--leaf-2);
+      font-style: normal;
+      font-weight: 950;
     }
-    .meter-ring::after {
-      content: "";
-      width: 27px;
-      height: 27px;
-      border-radius: inherit;
-      background: var(--paper);
-      border: 1px solid rgba(13, 107, 80, .08);
+    .plain-item strong {
+      display: block;
+      color: var(--ink);
+      font-size: 14px;
     }
-    .metric strong { display: block; font-size: 19px; letter-spacing: -.4px; }
-    .metric span { display: block; margin-top: 3px; color: var(--muted); font-size: 11px; font-weight: 700; }
-    .bed-metrics {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 8px;
-      margin-top: 12px;
+    .plain-item span {
+      display: block;
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+      font-weight: 650;
     }
-    .bed-metric {
+    .decision-card {
       border: 1px solid var(--line);
+      border-left: 6px solid var(--leaf);
       border-radius: var(--radius);
-      background: rgba(255,255,255,.72);
-      padding: 9px;
-      position: relative;
-      overflow: hidden;
-      min-height: 62px;
+      background: var(--paper);
+      padding: 13px;
     }
-    .bed-metric::before {
-      content: "";
-      position: absolute;
-      left: 0;
-      top: 0;
-      bottom: 0;
-      width: 5px;
-      background: var(--tone, var(--leaf));
+    .decision-card h3 { color: var(--leaf-2); }
+    .decision-card p {
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.4;
+      font-weight: 680;
     }
-    .bed-metric::after {
-      content: "";
-      position: absolute;
-      left: 5px;
-      right: 0;
-      bottom: 0;
-      height: 4px;
-      background: linear-gradient(90deg, var(--tone, var(--leaf)) var(--pct, 0%), transparent 0);
-      opacity: .75;
-    }
-    .bed-metric b { display: block; font-size: 16px; letter-spacing: -.3px; color: var(--ink); }
-    .bed-metric span { display: block; margin-top: 4px; color: var(--muted); font-size: 10px; font-weight: 850; }
     .band-white { background: var(--paper); border-color: var(--line); color: var(--leaf-2); }
     .ph-good { background: #e6f8ee; border-color: #9fdcba; color: var(--leaf-2); }
     .band-yellow { background: var(--yellow); border-color: var(--yellow-line); color: #76580a; }
@@ -899,38 +872,38 @@
 
   <script>
     const crops = [
-      {id:'cabai', n:'Cabai Rawit', common:'Chili', scientific:'Capsicum frutescens', visual:'🌶️', spacing:[50,60], ph:[6,7], temp:[24,28], yield:0.75, fertilizer:'N tinggi awal, P & K saat bunga', special:'Pemangkasan tunas air; pemberian mulsa', companions:['kemangi','marigold','bayam']},
-      {id:'terung', n:'Terung Ungu', common:'Eggplant', scientific:'Solanum melongena', visual:'🍆', spacing:[60,70], ph:[5.5,6.8], temp:[26,29], yield:1.4, fertilizer:'N 150 kg/ha; P2O5 130 kg/ha', special:'Pembuangan daun tua; pengajiran', companions:['kemangi','buncis','zinnia']},
-      {id:'jagung', n:'Jagung', common:'Corn', scientific:'Zea mays', visual:'🌽', spacing:[75,20], ph:[5.5,7.5], temp:[25,33], yield:0.28, fertilizer:'N 120-150 kg/ha; P2O5 60 kg/ha', special:'Baik untuk tumpang sari dan struktur rambat', companions:['kacang_panjang','bunga_matahari','calopogonium']},
-      {id:'padi', n:'Padi Gogo', common:'Upland rice', scientific:'Oryza sativa', visual:'🌾', spacing:[25,25], ph:[5,6.5], temp:[25,35], yield:0.045, fertilizer:'N 90 kg/ha; pupuk kandang 5 t/ha', special:'Penanaman di awal musim hujan', companions:['kenikir','semanggi','sereh']},
-      {id:'singkong', n:'Singkong', common:'Cassava', scientific:'Manihot esculenta', visual:'🪵', spacing:[100,100], ph:[4.5,7], temp:[20,30], yield:3.2, fertilizer:'K2O tinggi 120 kg/ha; N moderat', special:'Penjarangan tunas; sistem tumpang sari', companions:['kedelai_sela','arachis','marigold']},
-      {id:'ubi', n:'Ubi Jalar', common:'Sweet potato', scientific:'Ipomoea batatas', visual:'🍠', spacing:[30,70], ph:[5.5,6.5], temp:[24,30], yield:0.85, fertilizer:'K tinggi; minimal N untuk umbi', special:'Pembalikan batang secara berkala', companions:['buncis','kenikir','sereh']},
-      {id:'tomat', n:'Tomat', common:'Tomato', scientific:'Solanum lycopersicum', visual:'🍅', spacing:[50,70], ph:[6,7], temp:[20,27], yield:2.2, fertilizer:'N 150 kg/ha; Ca untuk cegah busuk', special:'Pengajiran intensif; pembuangan tunas', companions:['kemangi','marigold','selada']},
-      {id:'kelapa', n:'Kelapa', common:'Coconut', scientific:'Cocos nucifera', visual:'🥥', spacing:[900,900], ph:[5,8], temp:[27,32], yield:45, fertilizer:'K 2 kg/pohon/tahun; NaCl', special:'Pembersihan mahkota; pemupukan piringan', companions:['arachis','mucuna','sereh']},
-      {id:'kedelai', n:'Kedelai', common:'Soybean', scientific:'Glycine max', visual:'🌱', spacing:[40,15], ph:[6,6.5], temp:[25,30], yield:0.055, fertilizer:'P 60 kg/ha; inokulasi Rhizobium', special:'Inokulasi benih dengan Bradyrhizobium', companions:['jagung_sela','kubis','zinnia','krokot']},
-      {id:'talas', n:'Talas', common:'Taro', scientific:'Colocasia esculenta', visual:'🍃', spacing:[50,50], ph:[5.5,6.5], temp:[21,27], yield:1.8, fertilizer:'Organik tinggi; toleran genangan', special:'Membutuhkan tanah sangat lembab', companions:['pegagan','torenia','sereh']}
+      {id:'cabai', n:'Bird chili', common:'Chili', scientific:'Capsicum frutescens', visual:'🌶️', spacing:[50,60], ph:[6,7], temp:[24,28], yield:0.75, fertilizer:'High nitrogen early; phosphorus and potassium during flowering', special:'Prune side shoots and apply mulch', companions:['kemangi','marigold','bayam']},
+      {id:'terung', n:'Purple eggplant', common:'Eggplant', scientific:'Solanum melongena', visual:'🍆', spacing:[60,70], ph:[5.5,6.8], temp:[26,29], yield:1.4, fertilizer:'N 150 kg/ha; P2O5 130 kg/ha', special:'Remove old leaves and stake plants', companions:['kemangi','buncis','zinnia']},
+      {id:'jagung', n:'Corn', common:'Corn', scientific:'Zea mays', visual:'🌽', spacing:[75,20], ph:[5.5,7.5], temp:[25,33], yield:0.28, fertilizer:'N 120-150 kg/ha; P2O5 60 kg/ha', special:'Good for intercropping and climbing structure', companions:['kacang_panjang','bunga_matahari','calopogonium']},
+      {id:'padi', n:'Upland rice', common:'Upland rice', scientific:'Oryza sativa', visual:'🌾', spacing:[25,25], ph:[5,6.5], temp:[25,35], yield:0.045, fertilizer:'N 90 kg/ha; manure 5 t/ha', special:'Plant at the start of the rainy season', companions:['kenikir','semanggi','sereh']},
+      {id:'singkong', n:'Cassava', common:'Cassava', scientific:'Manihot esculenta', visual:'🪵', spacing:[100,100], ph:[4.5,7], temp:[20,30], yield:3.2, fertilizer:'High K2O 120 kg/ha; moderate nitrogen', special:'Thin shoots and use an intercropping system', companions:['kedelai_sela','arachis','marigold']},
+      {id:'ubi', n:'Sweet potato', common:'Sweet potato', scientific:'Ipomoea batatas', visual:'🍠', spacing:[30,70], ph:[5.5,6.5], temp:[24,30], yield:0.85, fertilizer:'High potassium; minimal nitrogen for tuber growth', special:'Turn vines periodically', companions:['buncis','kenikir','sereh']},
+      {id:'tomat', n:'Tomato', common:'Tomato', scientific:'Solanum lycopersicum', visual:'🍅', spacing:[50,70], ph:[6,7], temp:[20,27], yield:2.2, fertilizer:'N 150 kg/ha; calcium to reduce blossom-end rot', special:'Intensive staking and side-shoot pruning', companions:['kemangi','marigold','selada']},
+      {id:'kelapa', n:'Coconut', common:'Coconut', scientific:'Cocos nucifera', visual:'🥥', spacing:[900,900], ph:[5,8], temp:[27,32], yield:45, fertilizer:'K 2 kg/tree/year; NaCl', special:'Clean the crown and fertilize around the root zone', companions:['arachis','mucuna','sereh']},
+      {id:'kedelai', n:'Soybean', common:'Soybean', scientific:'Glycine max', visual:'🌱', spacing:[40,15], ph:[6,6.5], temp:[25,30], yield:0.055, fertilizer:'P 60 kg/ha; Rhizobium inoculation', special:'Inoculate seeds with Bradyrhizobium', companions:['jagung_sela','kubis','zinnia','krokot']},
+      {id:'talas', n:'Taro', common:'Taro', scientific:'Colocasia esculenta', visual:'🍃', spacing:[50,50], ph:[5.5,6.5], temp:[21,27], yield:1.8, fertilizer:'High organic matter; tolerates wet soil', special:'Requires very moist soil', companions:['pegagan','torenia','sereh']}
     ];
 
     const companionDb = {
-      kemangi:{n:'Kemangi', common:'Basil', kind:'Herb repellent', visual:'🌿', spacing:[30,30], ph:[6,7], temp:[22,30], note:'Repels whiteflies and thrips; fits between crop rows.', detail:'Aromatic border or row insert for tomato, chili, and eggplant beds.', caution:'Needs regular moisture and pruning.'},
+      kemangi:{n:'Basil', common:'Basil', kind:'Herb repellent', visual:'🌿', spacing:[30,30], ph:[6,7], temp:[22,30], note:'Repels whiteflies and thrips; fits between crop rows.', detail:'Aromatic border or row insert for tomato, chili, and eggplant beds.', caution:'Needs regular moisture and pruning.'},
       marigold:{n:'Marigold', common:'Marigold', kind:'Refugia', visual:'🌼', spacing:[45,45], ph:[6,7.5], temp:[18,30], note:'Repels root nematodes and attracts beneficial insects.', detail:'Strong perimeter flower, useful near Solanaceae crops.', caution:'Best in full sun; avoid overcrowding seedlings.'},
-      bayam:{n:'Bayam', common:'Amaranth', kind:'Sela crop', visual:'🥬', spacing:[15,15], ph:[6,7], temp:[25,35], note:'Fast harvest filler; shades bare soil.', detail:'Good early-cycle intercrop before main canopy closes.', caution:'Harvest young to avoid competition.'},
-      buncis:{n:'Buncis', common:'Bean', kind:'Legume companion', visual:'🫘', spacing:[20,40], ph:[6,7], temp:[18,25], note:'Adds nitrogen and uses a different canopy layer.', detail:'Works as a light companion when trellised carefully.', caution:'Keep away from garlic-heavy sections.'},
+      bayam:{n:'Amaranth', common:'Amaranth', kind:'Short-cycle crop', visual:'🥬', spacing:[15,15], ph:[6,7], temp:[25,35], note:'Fast harvest filler; shades bare soil.', detail:'Good early-cycle intercrop before main canopy closes.', caution:'Harvest young to avoid competition.'},
+      buncis:{n:'Bean', common:'Bean', kind:'Legume companion', visual:'🫘', spacing:[20,40], ph:[6,7], temp:[18,25], note:'Adds nitrogen and uses a different canopy layer.', detail:'Works as a light companion when trellised carefully.', caution:'Keep away from garlic-heavy sections.'},
       zinnia:{n:'Zinnia', common:'Zinnia', kind:'Refugia', visual:'🌸', spacing:[30,30], ph:[5.5,7.5], temp:[20,32], note:'Attracts pollinators and syrphid flies.', detail:'Colorful refugia patch for predator support.', caution:'Needs airflow to prevent mildew.'},
-      kacang_panjang:{n:'Kacang Panjang', common:'Yardlong bean', kind:'Legume companion', visual:'🫛', spacing:[25,75], ph:[5.5,6.5], temp:[25,35], note:'Fixes nitrogen and can use corn as structure.', detail:'Classic vertical layer for corn polyculture.', caution:'Needs support and regular harvest.'},
-      bunga_matahari:{n:'Bunga Matahari', common:'Sunflower', kind:'Refugia', visual:'🌻', spacing:[60,60], ph:[6,7.5], temp:[20,32], note:'Attracts bees and natural predators.', detail:'Use as perimeter marker and wind cue.', caution:'Can shade small crops if placed inside rows.'},
+      kacang_panjang:{n:'Yardlong bean', common:'Yardlong bean', kind:'Legume companion', visual:'🫛', spacing:[25,75], ph:[5.5,6.5], temp:[25,35], note:'Fixes nitrogen and can use corn as structure.', detail:'Classic vertical layer for corn polyculture.', caution:'Needs support and regular harvest.'},
+      bunga_matahari:{n:'Sunflower', common:'Sunflower', kind:'Refugia', visual:'🌻', spacing:[60,60], ph:[6,7.5], temp:[20,32], note:'Attracts bees and natural predators.', detail:'Use as perimeter marker and wind cue.', caution:'Can shade small crops if placed inside rows.'},
       calopogonium:{n:'Calopogonium', common:'Calopo', kind:'LCC', visual:'☘️', spacing:[40,40], ph:[5,6.5], temp:[24,32], note:'Living cover crop for weed suppression.', detail:'Low cover for larger bed systems.', caution:'Control spread near young seedlings.'},
-      kenikir:{n:'Kenikir', common:'Cosmos', kind:'Refugia', visual:'🌺', spacing:[40,40], ph:[5.5,7], temp:[22,32], note:'Attracts predators for aphids and leafhoppers.', detail:'Good edge refugia in warm beds.', caution:'Prune before it dominates edges.'},
-      semanggi:{n:'Semanggi', common:'Clover', kind:'Ground cover', visual:'☘️', spacing:[20,20], ph:[6,7], temp:[18,28], note:'Living mulch for moist soil cover.', detail:'Useful where soil should stay covered and cool.', caution:'Not for very dry beds.'},
-      sereh:{n:'Sereh Dapur', common:'Lemongrass', kind:'Repellent', visual:'🌾', spacing:[50,50], ph:[5.5,7.5], temp:[24,32], note:'Aromatic edge plant that helps confuse pests.', detail:'Use on corners or borders rather than between tight rows.', caution:'Clumps get large over time.'},
-      kedelai_sela:{n:'Kedelai', common:'Soybean intercrop', kind:'Legume companion', visual:'🌱', spacing:[40,15], ph:[6,6.5], temp:[25,30], note:'Tumpang sari rendah untuk menambah nitrogen.', detail:'Fits below cassava while light is available.', caution:'pH needs are narrower than cassava.'},
+      kenikir:{n:'Cosmos', common:'Cosmos', kind:'Refugia', visual:'🌺', spacing:[40,40], ph:[5.5,7], temp:[22,32], note:'Attracts predators for aphids and leafhoppers.', detail:'Good edge refugia in warm beds.', caution:'Prune before it dominates edges.'},
+      semanggi:{n:'Clover', common:'Clover', kind:'Ground cover', visual:'☘️', spacing:[20,20], ph:[6,7], temp:[18,28], note:'Living mulch for moist soil cover.', detail:'Useful where soil should stay covered and cool.', caution:'Not for very dry beds.'},
+      sereh:{n:'Lemongrass', common:'Lemongrass', kind:'Repellent', visual:'🌾', spacing:[50,50], ph:[5.5,7.5], temp:[24,32], note:'Aromatic edge plant that helps confuse pests.', detail:'Use on corners or borders rather than between tight rows.', caution:'Clumps get large over time.'},
+      kedelai_sela:{n:'Soybean intercrop', common:'Soybean intercrop', kind:'Legume companion', visual:'🌱', spacing:[40,15], ph:[6,6.5], temp:[25,30], note:'Low intercropping layer that adds nitrogen.', detail:'Fits below cassava while light is available.', caution:'pH needs are narrower than cassava.'},
       arachis:{n:'Arachis pintoi', common:'Pinto peanut', kind:'Ground cover', visual:'🍀', spacing:[40,40], ph:[5.5,7], temp:[22,32], note:'Perennial living mulch and erosion control.', detail:'Strong choice below coconut or cassava.', caution:'Needs establishment time.'},
       mucuna:{n:'Mucuna bracteata', common:'Mucuna', kind:'LCC', visual:'🌿', spacing:[100,100], ph:[5,6.5], temp:[24,32], note:'Large living cover for plantations.', detail:'Excellent for coconut spacing and soil cover.', caution:'Too vigorous for small vegetable beds.'},
-      selada:{n:'Selada', common:'Lettuce', kind:'Sela crop', visual:'🥬', spacing:[20,20], ph:[6,7], temp:[15,25], note:'Fast harvest filler; shades bare soil.', detail:'Best in early tomato growth or cooler sections.', caution:'Bolts under high heat.'},
-      jagung_sela:{n:'Jagung', common:'Corn strip', kind:'Structure crop', visual:'🌽', spacing:[75,20], ph:[5.5,7.5], temp:[25,33], note:'Adds vertical structure and canopy diversity.', detail:'Use in strips beside soybean, not as a dense mix.', caution:'Can outcompete if planted too close.'},
-      kubis:{n:'Kubis', common:'Cabbage', kind:'Between-row crop', visual:'🥬', spacing:[40,50], ph:[5.5,6.5], temp:[15,20], note:'Compact leaf crop for between-row placement where shade is controlled.', detail:'Place between soybean rows when airflow is good and harvest timing is short.', caution:'Needs cooler sections and steady moisture.'},
-      krokot:{n:'Krokot Gelang', common:'Purslane', kind:'Ground cover', visual:'🌿', spacing:[20,20], ph:[5.5,7], temp:[25,35], note:'Heat-tolerant soil cover and mineral accumulator.', detail:'Keeps bare soil shaded in hot beds.', caution:'Can spread quickly.'},
-      pegagan:{n:'Pegagan', common:'Gotu kola', kind:'Ground cover', visual:'🍀', spacing:[20,20], ph:[5.5,7], temp:[22,30], note:'Loves moist beds and covers soil around taro.', detail:'Pairs well with wet or partly shaded bedengan.', caution:'Avoid drought stress.'},
+      selada:{n:'Lettuce', common:'Lettuce', kind:'Short-cycle crop', visual:'🥬', spacing:[20,20], ph:[6,7], temp:[15,25], note:'Fast harvest filler; shades bare soil.', detail:'Best in early tomato growth or cooler sections.', caution:'Bolts under high heat.'},
+      jagung_sela:{n:'Corn strip', common:'Corn strip', kind:'Structure crop', visual:'🌽', spacing:[75,20], ph:[5.5,7.5], temp:[25,33], note:'Adds vertical structure and canopy diversity.', detail:'Use in strips beside soybean, not as a dense mix.', caution:'Can outcompete if planted too close.'},
+      kubis:{n:'Cabbage', common:'Cabbage', kind:'Between-row crop', visual:'🥬', spacing:[40,50], ph:[5.5,6.5], temp:[15,20], note:'Compact leaf crop for between-row placement where shade is controlled.', detail:'Place between soybean rows when airflow is good and harvest timing is short.', caution:'Needs cooler sections and steady moisture.'},
+      krokot:{n:'Purslane', common:'Purslane', kind:'Ground cover', visual:'🌿', spacing:[20,20], ph:[5.5,7], temp:[25,35], note:'Heat-tolerant soil cover and mineral accumulator.', detail:'Keeps bare soil shaded in hot beds.', caution:'Can spread quickly.'},
+      pegagan:{n:'Gotu kola', common:'Gotu kola', kind:'Ground cover', visual:'🍀', spacing:[20,20], ph:[5.5,7], temp:[22,30], note:'Loves moist beds and covers soil around taro.', detail:'Pairs well with wet or partly shaded raised beds.', caution:'Avoid drought stress.'},
       torenia:{n:'Torenia', common:'Wishbone flower', kind:'Refugia', visual:'🌷', spacing:[20,20], ph:[5.5,6.5], temp:[20,28], note:'Small flowering refugia for shaded humid areas.', detail:'Good near talas where taller flowers struggle.', caution:'Needs moist soil.'}
     };
 
@@ -1065,7 +1038,7 @@
       return `<div class="field-tabs">
         ${st.fields.map((f, i) => {
           const c = crops.find(x => x.id === f.crop) || crops[0];
-          return `<button class="field-tab ${i===st.activeField?'active':''}" onclick="loadField(${i})"><strong>${f.name}</strong><span>${c.common} · ${f.beds.length} bed</span></button>`;
+          return `<button class="field-tab ${i===st.activeField?'active':''}" onclick="loadField(${i})"><strong>${f.name}</strong><span>${c.common} · ${f.beds.length} ${f.beds.length === 1 ? 'bed' : 'beds'}</span></button>`;
         }).join('')}
         <button class="field-tab" onclick="createField()"><strong>+ New field</strong><span>start Chili onboarding</span></button>
       </div>`;
@@ -1073,7 +1046,7 @@
     function crop() { return crops.find(x => x.id === st.crop) || crops[0]; }
     function clamp(v, min, max) { return Math.min(Math.max(v, min), max); }
     function num(v, fallback) { const n = Number(String(v).replace(',', '.')); return Number.isFinite(n) ? n : fallback; }
-    function fmt(v, d=0) { return new Intl.NumberFormat('id-ID', {maximumFractionDigits:d}).format(v); }
+    function fmt(v, d=0) { return new Intl.NumberFormat('en-US', {maximumFractionDigits:d}).format(v); }
     function fmtPlain(v, d=2) { return Number(v).toFixed(d).replace(/\.?0+$/, ''); }
     function fmtPh(v) { return (Math.round(Number(v) * 10) / 10).toFixed(1).replace(/\.0$/, ''); }
     function fmtRange(r) { return `${fmtPh(r[0])}-${fmtPh(r[1])}`; }
@@ -1241,6 +1214,28 @@
       if (b.ph > max) return 'Blend organic matter and monitor next scan.';
       return 'pH is optimal. Keep current soil treatment.';
     }
+    function farmerDensityText(p) {
+      if (p.quality < 55) return 'Too crowded. Add more bed area or lower the harvest target.';
+      if (p.quality < 82) return 'A little tight. Keep airflow open and monitor plant strength.';
+      return 'Spacing is comfortable for this target.';
+    }
+    function bedActionHTML(b, p = calcBed(b)) {
+      const comp = companionDb[selectedCompanion(b)];
+      return `<div class="plain-list">
+        <div class="plain-item"><i>1</i><div><strong>Plant ${p.count} ${crop().common.toLowerCase()} plants</strong><span>Use ${p.actualX} cm between plants and ${p.actualY} cm between rows.</span></div></div>
+        <div class="plain-item"><i>2</i><div><strong>${phRecommendation(b)}</strong><span>Current pH is ${fmtPh(b.ph)} for this bed.</span></div></div>
+        <div class="plain-item"><i>3</i><div><strong>Add ${comp.common.toLowerCase()} as companion</strong><span>${placementLabel(selectedPlacement(b))}. ${comp.note}</span></div></div>
+      </div>`;
+    }
+    function fieldNextStepHTML() {
+      const worst = st.beds.map(b => ({b, p:calcBed(b)})).sort((a, b) => Math.min(a.p.quality, a.p.env) - Math.min(b.p.quality, b.p.env))[0];
+      if (!worst) return '';
+      const status = band(Math.min(worst.p.quality, worst.p.env));
+      return `<div class="decision-card ${status.cls}">
+        <h3>${status.label === 'Good' ? 'Ready to plant' : `Check Bed ${worst.b.id} first`}</h3>
+        <p>${status.label === 'Good' ? `${crop().common} layout is ready. Use the bed map below for placement.` : planNote(worst.p)}</p>
+      </div>`;
+    }
     function matchFor(comp, b, index) {
       const p = calcBed(b);
       const ph = rangeScore(b.ph, comp.ph || crop().ph, .18, .9);
@@ -1287,26 +1282,6 @@
       return `<span class="shape ${kind}" style="--c:${color};--s:${size}px"></span>`;
     }
     function setGuideStep(step) { st.guideStep = (step + 3) % 3; render(false); }
-    function metricCard(value, label, score = 100, cls = 'band-white') {
-      const tone = cls === 'band-red' ? '#b54141' : cls === 'band-orange' ? '#d77c28' : cls === 'band-yellow' ? '#d1a51a' : '#0d6b50';
-      return `<div class="metric gauge ${cls}" style="--pct:${clamp(score,0,100)}%;--tone:${tone}">
-        <div class="meter-ring"></div>
-        <div><strong>${value}</strong><span>${label}</span></div>
-      </div>`;
-    }
-    function bedMetric(value, label, score = 100, cls = 'band-white') {
-      const tone = cls === 'band-red' ? '#b54141' : cls === 'band-orange' ? '#d77c28' : cls === 'band-yellow' ? '#d1a51a' : '#0d6b50';
-      return `<div class="bed-metric ${cls}" style="--pct:${clamp(score,0,100)}%;--tone:${tone}"><b>${value}</b><span>${label}</span></div>`;
-    }
-    function bedMetricsHTML(b, p, index = 0) {
-      const coord = bedCoord(b, index);
-      return `<div class="bed-metrics">
-        ${bedMetric(fmtPh(b.ph), 'soil pH', p.phScore, band(p.phScore).cls)}
-        ${bedMetric(`${fmtPh(b.moisture)}%`, 'moisture', p.moistureScore, band(p.moistureScore).cls)}
-        ${bedMetric(`${p.quality}%`, 'density', p.quality, band(p.quality).cls)}
-        ${bedMetric(`${coord.lat.toFixed(4)}, ${coord.lng.toFixed(4)}`, 'coordinates', 100, 'band-white')}
-      </div>`;
-    }
     function spacingGuideHTML(b) {
       const p = calcBed(b);
       const compId = selectedCompanion(b);
@@ -1456,7 +1431,7 @@
       return `<section class="login">
         <div class="logo-mark">🌿</div>
         <h1>PolyFarm</h1>
-        <p class="sub">Mobile planning for real-scale polyculture bedengan.</p>
+        <p class="sub">Mobile planning for real-scale polyculture raised beds.</p>
         <div class="stack" style="margin-top:34px">
           <input class="input" placeholder="Email address">
           <input class="input" type="password" placeholder="Password">
@@ -1471,7 +1446,7 @@
         <div class="top">
           <div class="step">Step 1 of 5</div>
           <h1>Register field target</h1>
-          <p class="sub">One production target for the whole field. Each bedengan receives its share from the real measured area.</p>
+          <p class="sub">One production target for the whole field. Each raised bed receives its share from the real measured area.</p>
         </div>
         <div class="section stack">
           ${fieldTabs()}
@@ -1505,14 +1480,13 @@
               <span class="crop-icon">${c.visual}</span>
               <h3>${c.common}</h3>
               <p>pH ${fmtRange(c.ph)} - ${c.spacing[0]}x${c.spacing[1]} cm</p>
-              <div class="sci">${c.n}<br>${c.scientific}</div>
             </button>`).join('')}
           </div>
           <div class="panel soft">
-            <div class="chip">${crop().visual} ${crop().n}</div>
-            <p class="sub">Database loaded: spacing ${crop().spacing[0]}x${crop().spacing[1]} cm, pH ${fmtRange(crop().ph)}, temp ${crop().temp[0]}-${crop().temp[1]}°C. ${crop().special}.</p>
+            <div class="chip">${crop().visual} ${crop().common}</div>
+            <p class="sub">${crop().special}. Recommended spacing: ${crop().spacing[0]}x${crop().spacing[1]} cm.</p>
           </div>
-          <button class="btn" onclick="nav('beds')">Continue to bedengan sizes</button>
+          <button class="btn" onclick="nav('beds')">Continue to raised bed sizes</button>
         </div>
       </section>`;
     }
@@ -1524,7 +1498,7 @@
       return `<section>
         <div class="top">
           <div class="step">Step 2 of 5</div>
-          <h1>Set each bedengan</h1>
+          <h1>Set each raised bed</h1>
           <p class="sub">Enter width and length bed by bed. The keyboard input applies on Enter or when the field loses focus, so typing does not fight the screen.</p>
         </div>
         <div class="section stack">
@@ -1544,14 +1518,9 @@
               ${numberControl(i,'length','Length','meters',.5)}
               ${numberControl(i,'width','Width','meters',.1)}
             </div>
-            <div class="metric-row">
-              <div class="metric"><strong>${fmt(p.naturalCount)}</strong><span>plants at database spacing</span></div>
-              <div class="metric"><strong>${fmt(p.neededPlants)}</strong><span>plants for target</span></div>
-              <div class="metric ${band(p.quality).cls}"><strong>${p.quality}%</strong><span>density quality</span></div>
-            </div>
             <div class="panel ${band(p.quality).cls}" style="padding:12px">
-              <strong>${band(p.quality).label}</strong>
-              <p class="sub" style="font-size:13px;margin-top:4px">${planNote(p)}</p>
+              <strong>${farmerDensityText(p)}</strong>
+              <p class="sub" style="font-size:13px;margin-top:4px">This bed will use ${p.actualX}x${p.actualY} cm spacing for ${fmt(p.bedTargetKg,1)} kg target share.</p>
             </div>
           </div>
           <button class="btn" onclick="nav('scan')">Start bed scan</button>
@@ -1564,7 +1533,7 @@
       return `<section>
         <div class="top">
           <div class="step">Step 3 of 5</div>
-          <h1>Scan bedengan</h1>
+          <h1>Scan raised beds</h1>
           <p class="sub">Insert the sensor into each bed. Soil pH and moisture will refine the recommendation before layout generation.</p>
         </div>
         <div class="section stack">
@@ -1581,7 +1550,6 @@
               <div>
                 <strong>Bed ${b.id}</strong>
                 <p class="scan-ph ${done?'':'waiting'}">${done ? `pH ${fmtPh(b.ph)}` : 'pH Waiting...'}</p>
-                <p class="sub" style="font-size:12px;margin-top:2px">Moisture ${done ? fmtPh(b.moisture) + '%' : 'Waiting...'}</p>
               </div>
               <span class="chip ${done?'band-white':''}">${done ? '✓ Detected' : 'Waiting...'}</span>
             </div>`;
@@ -1592,21 +1560,13 @@
     }
 
     function S_soil() {
-      const plans = st.beds.map(calcBed);
-      const avgPh = st.beds.reduce((a,b) => a + b.ph, 0) / st.beds.length;
-      const avgEnv = Math.round(plans.reduce((a,p) => a + p.env, 0) / plans.length);
       return `<section>
         <div class="top">
           <div class="step">Step 4 of 5</div>
-          <h1>Soil and density check</h1>
-          <p class="sub">Warnings now use relaxed bands: white, light yellow, orange, and red. Small differences stay quiet.</p>
+          <h1>Soil action</h1>
+          <p class="sub">Use this screen to decide what to fix before planting.</p>
         </div>
         <div class="section stack">
-          <div class="metric-row">
-            ${metricCard(fmtPh(avgPh), 'average pH', rangeScore(avgPh, crop().ph, .12, .8), band(rangeScore(avgPh, crop().ph, .12, .8)).cls)}
-            ${metricCard(`${avgEnv}%`, 'environment fit', avgEnv, band(avgEnv).cls)}
-            ${metricCard(fmt(st.target), 'kg total target', 78, 'band-white')}
-          </div>
           ${st.beds.map((b, index) => {
             const p = calcBed(b);
             const phTone = phBandForBed(b);
@@ -1615,12 +1575,12 @@
                 <div>
                   <h3>Bed ${b.id}</h3>
                   <strong class="ph-number">${fmtPh(b.ph)}</strong>
-                  <p class="sub" style="font-size:12px">pH result - ${p.actualX}x${p.actualY} cm adjusted spacing</p>
+                  <p class="sub" style="font-size:12px">pH result for this bed</p>
                 </div>
                 <span class="chip ${phTone.cls}">${phTone.label}</span>
               </div>
-              ${bedMetricsHTML(b, p, index)}
               <div class="ph-reco">${phRecommendation(b)}</div>
+              <p class="sub" style="font-size:13px">${farmerDensityText(p)}</p>
             </div>`;
           }).join('')}
           <button class="btn" onclick="nav('companion')">Choose companion plants</button>
@@ -1633,18 +1593,13 @@
         <div class="top">
           <div class="step">Step 5 of 5</div>
           <h1>Companion per bed</h1>
-          <p class="sub">Recommendations are tailored to each bedengan using target pressure, pH, moisture, and the crop database.</p>
+          <p class="sub">Choose one companion plant and where it should go.</p>
         </div>
         <div class="section stack">
           <div class="panel stack">
             <div>
-              <h2>Companion placement</h2>
-              <p class="sub">Use perimeter mode for tall companions like corn, so the center crop keeps better sunlight.</p>
-            </div>
-            <div class="segmented">
-              <button class="segment ${st.layoutMode==='edge'?'active':''}" onclick="setLayoutMode('edge')">Side rows</button>
-              <button class="segment ${st.layoutMode==='perimeter'?'active':''}" onclick="setLayoutMode('perimeter')">Perimeter</button>
-              <button class="segment ${st.layoutMode==='between'?'active':''}" onclick="setLayoutMode('between')">Between</button>
+              <h2>Choose one helper plant</h2>
+              <p class="sub">Pick the plant that gives the clearest benefit for this bed.</p>
             </div>
           </div>
           ${st.beds.map(b => {
@@ -1661,6 +1616,7 @@
                 const m = matchFor(comp, b, index);
                 const recommended = suggestedPlacement(id);
                 const placement = selected ? selectedPlacement(b) : recommended;
+                const fitLabel = m >= 90 ? 'Best fit' : m >= 78 ? 'Good fit' : 'Usable';
                 return `<div class="comp-card ${selected?'selected':''}">
                   <div class="comp-head">
                     <div class="comp-icon">${comp.visual}</div>
@@ -1668,14 +1624,14 @@
                       <h3>${comp.common}</h3>
                       <p class="sub" style="margin-top:2px">${comp.kind}</p>
                     </div>
-                    <div class="match">${m}%</div>
+                    <div class="match" style="font-size:16px">${fitLabel}</div>
                   </div>
                   <p class="detail">${comp.note}</p>
                   <div class="detail-grid">
-                    <div class="tiny-box pro"><b>Pros</b>${comp.detail}</div>
-                    <div class="tiny-box con"><b>Cons</b>${comp.caution}</div>
+                    <div class="tiny-box pro"><b>Why add it</b>${comp.detail}</div>
+                    <div class="tiny-box con"><b>Watch out</b>${comp.caution}</div>
                   </div>
-                  <div class="tiny-box" style="margin-top:8px"><b>Database fit</b>${comp.spacing[0]}x${comp.spacing[1]} cm - pH ${fmtRange(comp.ph)} - ${placementLabel(recommended)}</div>
+                  <div class="tiny-box" style="margin-top:8px"><b>Where to plant</b>${placementLabel(recommended)}</div>
                   ${selected ? `<div class="segmented" style="margin-top:10px">
                     <button class="segment mini ${placement==='edge'?'active':''}" onclick="setCompanionPlacement('${b.id}','edge')">Side rows</button>
                     <button class="segment mini ${placement==='perimeter'?'active':''}" onclick="setCompanionPlacement('${b.id}','perimeter')">Perimeter</button>
@@ -1770,7 +1726,7 @@
         <div class="legend">
           <span class="chip">${shapeHTML(mainKind, mainColor, 10)} ${crop().common}</span>
           <span class="chip">${shapeHTML(compKind, compColor, 10)} ${comp.common}</span>
-          <span class="chip">${st.beds.length} bedengan</span>
+          <span class="chip">${st.beds.length} ${st.beds.length === 1 ? 'raised bed' : 'raised beds'}</span>
         </div>
       </div>`;
     }
@@ -1789,12 +1745,7 @@
             <button class="icon-btn" onclick="closeBedPopup()" aria-label="Close bed details">×</button>
           </div>
           ${bedSummaryHTML(b)}
-          <div class="bed-metrics">
-            ${bedMetric(fmtPh(b.ph), 'soil pH', p.phScore, band(p.phScore).cls)}
-            ${bedMetric(`${fmtPh(b.moisture)}%`, 'moisture', p.moistureScore, band(p.moistureScore).cls)}
-            ${bedMetric(`${p.quality}%`, 'density', p.quality, band(p.quality).cls)}
-            ${bedMetric(`${p.env}%`, 'environment', p.env, band(p.env).cls)}
-          </div>
+          ${bedActionHTML(b, p)}
           <button class="mini-action" onclick="viewBedDetails('${b.id}')">Open full specification</button>
         </div>
       </div>`;
@@ -1850,26 +1801,21 @@
         <div class="top">
           <div class="step">${st.fieldName}</div>
           <h1>${crop().common} field plan</h1>
-          <p class="sub">${st.beds.length} bedengan - estimated ${fmt(totalYield,1)} kg from ${fmt(st.target)} kg target.</p>
+          <p class="sub">${st.beds.length} ${st.beds.length === 1 ? 'raised bed' : 'raised beds'} planned for ${fmt(st.target)} kg target.</p>
         </div>
         <div class="section stack">
           ${fieldTabs()}
         </div>
         <div class="section dashboard-grid" style="padding-top:0">
           <div class="stack">
-            <div class="metric-row">
-              ${metricCard(fmt(totalArea(),1), 'm² planted', Math.min(100,totalArea()*5), 'band-white')}
-              ${metricCard(fmt(totalYield,1), 'kg estimate', Math.min(100,(totalYield/st.target)*100), band(Math.min(100,(totalYield/st.target)*100)).cls)}
-              ${metricCard(fmtPh(live.ph_soil), 'live pH', rangeScore(live.ph_soil, crop().ph, .12, .8), band(rangeScore(live.ph_soil, crop().ph, .12, .8)).cls)}
-            </div>
+            ${fieldNextStepHTML()}
             ${st.beds.map((b, index) => {
               const p = calcBed(b);
               return `<button class="panel ${st.activeBed===b.id?'soft':''}" onclick="st.activeBed='${b.id}';showMain('dashboard')" style="text-align:left;width:100%">
                 <div style="display:flex;justify-content:space-between;gap:10px;align-items:center">
-                  <div><h3>Bed ${b.id}</h3><p class="sub">${p.count} ${crop().common} - ${p.actualX}x${p.actualY} cm - pH ${fmtPh(b.ph)}</p></div>
+                  <div><h3>Bed ${b.id}</h3><p class="sub">${p.count} plants - ${p.actualX}x${p.actualY} cm spacing</p></div>
                   <span class="chip ${band(Math.min(p.quality,p.env)).cls}">${band(Math.min(p.quality,p.env)).label}</span>
                 </div>
-                ${bedMetricsHTML(b, p, index)}
               </button>`;
             }).join('')}
           </div>
@@ -1879,7 +1825,7 @@
     }
     function T_beds() {
       return `<section>
-        <div class="top"><h1>Bed details</h1><p class="sub">Each bed keeps independent size, pH, moisture, companion, and scale output.</p></div>
+        <div class="top"><h1>Bed details</h1><p class="sub">Open a bed only when you need planting instructions.</p></div>
         <div class="section stack">
           ${st.beds.map(b => {
             const p = calcBed(b);
@@ -1887,11 +1833,7 @@
             return `<div class="panel stack">
               ${bedSummaryHTML(b)}
               <button class="mini-action" onclick="toggleBedExpanded('${b.id}')">${expanded ? 'Collapse full specification' : 'Open full specification'}</button>
-              ${expanded ? `<div class="metric-row">
-                <div class="metric"><strong>${p.count}</strong><span>main plants</span></div>
-                <div class="metric ${band(p.quality).cls}"><strong>${p.quality}%</strong><span>density</span></div>
-                <div class="metric ${band(p.env).cls}"><strong>${p.env}%</strong><span>environment</span></div>
-              </div>${spacingGuideHTML(b)}${layoutHTML(b)}` : ''}
+              ${expanded ? `${bedActionHTML(b, p)}${spacingGuideHTML(b)}${layoutHTML(b)}` : ''}
             </div>`;
           }).join('')}
         </div>
@@ -1917,7 +1859,7 @@
         <div class="top"><h1>Settings</h1><p class="sub">Field setup can be adjusted any time and the layout will recompute from the database.</p></div>
         <div class="section stack">
           <button class="btn secondary" onclick="nav('field')">Edit crop and target</button>
-          <button class="btn secondary" onclick="nav('beds')">Edit bedengan sizes</button>
+          <button class="btn secondary" onclick="nav('beds')">Edit raised bed sizes</button>
           <button class="btn ghost" onclick="nav('login')">Sign out</button>
         </div>
       </section>`;
