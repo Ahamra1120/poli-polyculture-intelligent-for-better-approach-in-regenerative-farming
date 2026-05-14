@@ -278,6 +278,7 @@
     .bed-metric b { display: block; font-size: 16px; letter-spacing: -.3px; color: var(--ink); }
     .bed-metric span { display: block; margin-top: 4px; color: var(--muted); font-size: 10px; font-weight: 850; }
     .band-white { background: var(--paper); border-color: var(--line); color: var(--leaf-2); }
+    .ph-good { background: #e6f8ee; border-color: #9fdcba; color: var(--leaf-2); }
     .band-yellow { background: var(--yellow); border-color: var(--yellow-line); color: #76580a; }
     .band-orange { background: var(--orange); border-color: var(--orange-line); color: #85460f; }
     .band-red { background: var(--red); border-color: var(--red-line); color: #8b2525; }
@@ -302,6 +303,24 @@
       color: var(--leaf-2);
       font-size: 30px;
     }
+    .scan-card {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      transition: border-color .2s ease, background .2s ease;
+    }
+    .scan-card.detected {
+      border-color: rgba(13, 107, 80, .34);
+      background: #f7fffa;
+    }
+    .scan-ph {
+      margin-top: 6px;
+      color: var(--leaf-2);
+      font-size: 13px;
+      font-weight: 900;
+    }
+    .scan-ph.waiting { color: var(--muted); }
     .progress {
       height: 7px;
       border-radius: 999px;
@@ -309,6 +328,42 @@
       overflow: hidden;
     }
     .progress span { display: block; height: 100%; background: var(--leaf); width: var(--w); border-radius: inherit; transition: width .25s ease; }
+    .ph-result-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--paper);
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+    }
+    .ph-result-card.band-orange,
+    .ph-result-card.band-red,
+    .ph-result-card.band-yellow { border-width: 2px; }
+    .ph-result-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+    }
+    .ph-number {
+      display: block;
+      margin-top: 5px;
+      font-size: 44px;
+      line-height: .9;
+      letter-spacing: -1.2px;
+      color: var(--leaf-2);
+      font-weight: 950;
+    }
+    .ph-reco {
+      border-radius: var(--radius);
+      background: rgba(255,255,255,.72);
+      border: 1px solid rgba(13, 107, 80, .12);
+      padding: 10px;
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 850;
+      line-height: 1.35;
+    }
     .comp-card {
       border: 1px solid var(--line);
       border-radius: var(--radius);
@@ -341,12 +396,155 @@
       line-height: 1.35;
     }
     .tiny-box b { color: var(--ink); display: block; margin-bottom: 2px; }
+    .tiny-box.pro { background: #f3fbf5; border-color: #cde8d5; }
+    .tiny-box.con { background: #fff8ed; border-color: #efd7af; }
     .layout-wrap {
       border: 1px solid var(--line);
       border-radius: var(--radius);
       background: linear-gradient(#fbfffc, #edf8f1);
       padding: 12px;
       overflow: auto;
+    }
+    .bed-summary {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: linear-gradient(135deg, #ffffff, #f1faf4);
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+    }
+    .bed-summary-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+    .bed-summary-head h3 {
+      font-size: 24px;
+      color: var(--leaf-2);
+    }
+    .bed-summary-head p {
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 760;
+    }
+    .bed-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .bed-stat {
+      border: 1px solid rgba(13, 107, 80, .12);
+      border-radius: var(--radius);
+      background: rgba(255,255,255,.78);
+      padding: 9px;
+    }
+    .bed-stat b {
+      display: block;
+      color: var(--leaf-2);
+      font-size: 17px;
+      line-height: 1;
+    }
+    .bed-stat span {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 850;
+    }
+    .field-map {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: linear-gradient(#ffffff, #eef8f2);
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+    }
+    .bed-map-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 10px;
+    }
+    .bed-map-tile {
+      border: 1px solid var(--line);
+      background: #fbfffc;
+      border-radius: var(--radius);
+      padding: 10px;
+      text-align: left;
+      color: var(--ink);
+    }
+    .bed-map-tile.active { border: 2px solid var(--leaf); padding: 9px; background: #f2fbf5; }
+    .bed-map-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      gap: 8px;
+    }
+    .bed-mini-map {
+      position: relative;
+      height: 104px;
+      border: 2px solid var(--leaf-2);
+      border-radius: var(--radius);
+      background:
+        linear-gradient(90deg, rgba(13,107,80,.08) 1px, transparent 1px),
+        linear-gradient(rgba(13,107,80,.08) 1px, transparent 1px),
+        #f8fff9;
+      background-size: 24px 24px;
+      overflow: hidden;
+    }
+    .bed-mini-dot {
+      position: absolute;
+      transform: translate(-50%, -50%) scale(.72);
+      display: grid;
+      place-items: center;
+    }
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(8, 36, 28, .38);
+      display: grid;
+      place-items: end center;
+      z-index: 20;
+      padding: 16px;
+    }
+    .bed-modal {
+      width: min(100%, 420px);
+      max-height: min(84vh, 720px);
+      overflow: auto;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 16px 16px var(--radius) var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow);
+    }
+    .modal-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .icon-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: var(--mist);
+      color: var(--leaf-2);
+      font-size: 20px;
+      font-weight: 900;
+    }
+    .mini-action {
+      width: 100%;
+      min-height: 42px;
+      margin-top: 10px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: var(--mist);
+      color: var(--leaf-2);
+      font-weight: 900;
     }
     .layout {
       position: relative;
@@ -356,12 +554,26 @@
       min-height: 260px;
       margin: auto;
       border: 2px solid var(--leaf-2);
-      background:
-        linear-gradient(90deg, rgba(13, 107, 80, .08) 1px, transparent 1px),
-        linear-gradient(rgba(13, 107, 80, .08) 1px, transparent 1px),
-        #f8fff9;
-      background-size: var(--cell-x) var(--cell-y);
+      background: #f8fff9;
       border-radius: var(--radius);
+    }
+    .layout-guide-line {
+      position: absolute;
+      background: rgba(13, 107, 80, .1);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .layout-guide-line.v {
+      top: 0;
+      bottom: 0;
+      width: 1px;
+      transform: translateX(-50%);
+    }
+    .layout-guide-line.h {
+      left: 0;
+      right: 0;
+      height: 1px;
+      transform: translateY(-50%);
     }
     .plant-dot {
       position: absolute;
@@ -761,6 +973,8 @@
       setupBed:0,
       scanned:0,
       activeBed:'A1',
+      expandedBed:null,
+      mapPopupBed:null,
       guideStep:0,
       chosen:{},
       placements:{},
@@ -795,13 +1009,15 @@
       st.setupBed = 0;
       st.q = '';
       st.activeBed = st.beds[0]?.id || 'A1';
+      st.expandedBed = null;
+      st.mapPopupBed = null;
       render();
     }
     function createField() {
       saveField();
       const n = st.fields.length + 1;
       st.fields.push({
-        name:`Field ${String.fromCharCode(64 + n)}`,
+        name:`Chili Field ${n}`,
         crop:'cabai',
         target:60,
         layoutMode:'edge',
@@ -810,6 +1026,11 @@
         beds:[{id:'A1', length:7, width:1.2, ph:6.1, moisture:46, lat:-6.2005, lng:106.8175}]
       });
       loadField(st.fields.length - 1);
+      st.screen = 'field';
+      st.tab = 'dashboard';
+      st.expandedBed = null;
+      st.mapPopupBed = null;
+      render();
     }
     function removeField() {
       if (st.fields.length <= 1) return;
@@ -826,6 +1047,8 @@
       st.beds = f.beds.map(b => ({...b}));
       st.setupBed = 0;
       st.activeBed = st.beds[0]?.id || 'A1';
+      st.expandedBed = null;
+      st.mapPopupBed = null;
       render();
     }
     function startDemo() {
@@ -844,7 +1067,7 @@
           const c = crops.find(x => x.id === f.crop) || crops[0];
           return `<button class="field-tab ${i===st.activeField?'active':''}" onclick="loadField(${i})"><strong>${f.name}</strong><span>${c.common} · ${f.beds.length} bed</span></button>`;
         }).join('')}
-        <button class="field-tab" onclick="createField()"><strong>+ New field</strong><span>another crop type</span></button>
+        <button class="field-tab" onclick="createField()"><strong>+ New field</strong><span>start Chili onboarding</span></button>
       </div>`;
     }
     function crop() { return crops.find(x => x.id === st.crop) || crops[0]; }
@@ -878,10 +1101,84 @@
       saveField();
       render();
     }
+    function toggleBedExpanded(id) {
+      st.expandedBed = st.expandedBed === id ? null : id;
+      st.activeBed = id;
+      render(false);
+    }
+    function viewBedDetails(id) {
+      st.activeBed = id;
+      st.expandedBed = id;
+      st.mapPopupBed = null;
+      showMain('beds');
+    }
+    function openBedPopup(id) {
+      st.activeBed = id;
+      st.mapPopupBed = id;
+      render(false);
+    }
+    function closeBedPopup() {
+      st.mapPopupBed = null;
+      render(false);
+    }
     function bedCoord(b, index = 0) {
       const lat = b.lat ?? live.lat ?? (-6.2 - index * .0002);
       const lng = b.lng ?? live.long ?? (106.817 + index * .0002);
       return {lat, lng};
+    }
+    function axisPositions(sizeCm, gapCm, count = null) {
+      const n = count ?? Math.max(1, Math.floor(sizeCm / Math.max(gapCm, 1)));
+      if (n <= 1) return [sizeCm / 2];
+      const span = (n - 1) * gapCm;
+      const start = (sizeCm - span) / 2;
+      return Array.from({length:n}, (_, i) => start + i * gapCm);
+    }
+    function percentPos(cm, totalCm) {
+      return clamp((cm / Math.max(totalCm, 1)) * 100, 0, 100);
+    }
+    function bedGeometry(b, p = calcBed(b)) {
+      const widthCm = b.width * 100;
+      const lengthCm = b.length * 100;
+      return {
+        widthCm,
+        lengthCm,
+        xs: axisPositions(widthCm, p.actualX, p.cols),
+        ys: axisPositions(lengthCm, p.actualY, p.rows)
+      };
+    }
+    function companionPositions(b, p, comp, placement, g) {
+      const positions = [];
+      const compX = Math.max(10, comp.spacing?.[0] || p.actualX);
+      const compY = Math.max(10, comp.spacing?.[1] || p.actualY);
+      const add = (x, y) => positions.push({x:percentPos(x, g.widthCm), y:percentPos(y, g.lengthCm)});
+      if (placement === 'perimeter') {
+        const edgeY = Math.min(compY / 2, g.lengthCm * .05);
+        const edgeX = Math.min(compX / 2, g.widthCm * .08);
+        axisPositions(g.widthCm, compX).forEach(x => {
+          add(x, edgeY);
+          add(x, g.lengthCm - edgeY);
+        });
+        axisPositions(g.lengthCm, compY).forEach(y => {
+          add(edgeX, y);
+          add(g.widthCm - edgeX, y);
+        });
+      } else if (placement === 'between') {
+        const lanes = [];
+        for (let i = 0; i < g.xs.length - 1; i++) {
+          const gap = g.xs[i + 1] - g.xs[i];
+          if (gap >= compX * .55) lanes.push((g.xs[i] + g.xs[i + 1]) / 2);
+        }
+        if (!lanes.length) lanes.push(g.widthCm / 2);
+        const yGap = Math.max(compY, p.actualY);
+        axisPositions(g.lengthCm, yGap).forEach(y => lanes.forEach(x => add(x, y)));
+      } else {
+        const sideX = Math.min(compX / 2, g.widthCm * .08);
+        axisPositions(g.lengthCm, compY).forEach(y => {
+          add(sideX, y);
+          add(g.widthCm - sideX, y);
+        });
+      }
+      return positions;
     }
 
     function rangeScore(value, range, soft, hard) {
@@ -905,15 +1202,15 @@
       const bedTargetKg = st.target * bedShare(b);
       const neededPlants = Math.max(1, Math.ceil(bedTargetKg / c.yield));
       const pressure = Math.sqrt(naturalCount / neededPlants);
-      const spacingFactor = clamp(pressure, .58, 1.18);
+      const spacingFactor = clamp(pressure, .5, 1.18);
       const actualX = Math.max(10, Math.round(sx * spacingFactor));
       const actualY = Math.max(10, Math.round(sy * spacingFactor));
       const cols = Math.max(1, Math.floor((b.width * 100) / actualX));
       const rows = Math.max(1, Math.floor((b.length * 100) / actualY));
       const count = cols * rows;
       const yieldKg = count * c.yield;
-      const densityLoss = Math.max(0, .82 - spacingFactor);
-      const quality = clamp(Math.round(100 - densityLoss * 140), 45, 100);
+      const densityLoss = Math.max(0, .85 - pressure);
+      const quality = clamp(Math.round(100 - densityLoss * 150), 18, 100);
       const phScore = rangeScore(b.ph, c.ph, .12, .8);
       const tempScore = rangeScore(live.temp_air, c.temp, 1.5, 6);
       const moistureScore = rangeScore(b.moisture, [40, 82], 4, 18);
@@ -929,6 +1226,20 @@
       if (e.label === 'Caution') return 'Environment needs correction before planting for best result.';
       if (q.label === 'Watch' || e.label === 'Watch') return 'Within watch range. No alarm yet, just keep an eye on this bed.';
       return 'Recommendation is inside the relaxed safety margin.';
+    }
+    function phBandForBed(b) {
+      const score = rangeScore(b.ph, crop().ph, .12, .8);
+      if (score >= 82) return {cls:'ph-good', label:'Optimal'};
+      if (b.ph < crop().ph[0]) return {cls:score >= 55 ? 'band-orange' : 'band-red', label:score >= 55 ? 'Acidic' : 'Very acidic'};
+      return {cls:score >= 55 ? 'band-orange' : 'band-red', label:score >= 55 ? 'Alkaline' : 'Very alkaline'};
+    }
+    function phRecommendation(b) {
+      const [min, max] = crop().ph;
+      if (b.ph < min - .45) return 'Add 150g/m² of lime before transplanting.';
+      if (b.ph < min) return 'Add 150g/m² of lime and retest after watering.';
+      if (b.ph > max + .45) return 'Add compost and avoid extra ash this cycle.';
+      if (b.ph > max) return 'Blend organic matter and monitor next scan.';
+      return 'pH is optimal. Keep current soil treatment.';
     }
     function matchFor(comp, b, index) {
       const p = calcBed(b);
@@ -1007,8 +1318,6 @@
       const mainCropLower = mainCropName.toLowerCase();
       const dot = (x, y, kind = mainKind, color = mainColor, size = 13, title = crop().n) =>
         `<span class="spacing-dot" style="left:${x}%;top:${y}%" title="${title}">${shapeHTML(kind, color, size)}</span>`;
-      const gridLines = [30,50,70].map(x => `<span class="guide-grid-line v" style="left:${x}%"></span>`).join('') +
-        [30,56,82].map(y => `<span class="guide-grid-line h" style="top:${y}%"></span>`).join('');
       const scenario = st.guideStep % 3;
       const scenarioNames = [`${mainCropName} gap`, 'Row gap', 'Companion'];
       const cropGrid = [
@@ -1017,6 +1326,8 @@
         [30,82], [50,82], [70,82]
       ];
       const mainDots = cropGrid.map(([x,y]) => dot(x,y)).join('');
+      const cropGuides = [30,50,70].map(x => `<span class="guide-grid-line v" style="left:${x}%"></span>`).join('');
+      const rowGuides = [30,56,82].map(y => `<span class="guide-grid-line h" style="top:${y}%"></span>`).join('');
       const cropOnly = `${mainDots}
         <span class="spacing-line h" style="left:30%;width:20%;top:56%"></span>
         <span class="spacing-label" style="left:40%;top:45%">${p.actualX} cm between ${mainCropLower}</span>`;
@@ -1046,6 +1357,7 @@
         `Use this repeat for the next ${mainCropLower} row, measured center to center.`,
         `${comp.n} uses ${placementLabel(placement).toLowerCase()} placement, so measure it separately from ${mainCropLower} spacing.`
       ];
+      const guideLines = scenario === 0 ? cropGuides : scenario === 1 ? rowGuides : '';
       return `<div class="spacing-guide">
         <div class="spacing-guide-head">
           <button class="guide-arrow" onclick="setGuideStep(${scenario - 1})" aria-label="Previous spacing guide">‹</button>
@@ -1059,7 +1371,7 @@
           ${scenarioNames.map((name, idx) => `<button class="guide-tab ${idx===scenario?'active':''}" onclick="setGuideStep(${idx})">${name}</button>`).join('')}
         </div>
         <div class="spacing-stage">
-          ${gridLines}
+          ${guideLines}
           ${scenarioBody}
         </div>
         <p class="guide-caption">${captions[scenario]}</p>
@@ -1263,10 +1575,17 @@
             </div>
             <div class="progress" style="--w:${pct}%"><span></span></div>
           </div>
-          ${st.beds.map((b, idx) => `<div class="panel" style="display:flex;justify-content:space-between;align-items:center">
-            <div><strong>Bed ${b.id}</strong><p class="sub" style="font-size:12px">pH ${idx < st.scanned ? fmtPh(b.ph) : 'waiting'} - moisture ${idx < st.scanned ? fmtPh(b.moisture) + '%' : 'waiting'}</p></div>
-            <span class="chip">${idx < st.scanned ? 'Detected' : 'Pending'}</span>
-          </div>`).join('')}
+          ${st.beds.map((b, idx) => {
+            const done = idx < st.scanned;
+            return `<div class="panel scan-card ${done?'detected':''}">
+              <div>
+                <strong>Bed ${b.id}</strong>
+                <p class="scan-ph ${done?'':'waiting'}">${done ? `pH ${fmtPh(b.ph)}` : 'pH Waiting...'}</p>
+                <p class="sub" style="font-size:12px;margin-top:2px">Moisture ${done ? fmtPh(b.moisture) + '%' : 'Waiting...'}</p>
+              </div>
+              <span class="chip ${done?'band-white':''}">${done ? '✓ Detected' : 'Waiting...'}</span>
+            </div>`;
+          }).join('')}
           <button class="btn" ${st.scanned < st.beds.length ? 'disabled' : ''} onclick="nav('soil')">${st.scanned < st.beds.length ? 'Scanning...' : 'View soil result'}</button>
         </div>
       </section>`;
@@ -1290,16 +1609,18 @@
           </div>
           ${st.beds.map((b, index) => {
             const p = calcBed(b);
-            return `<div class="panel ${band(Math.min(p.quality,p.env)).cls}">
-              <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start">
+            const phTone = phBandForBed(b);
+            return `<div class="ph-result-card ${phTone.cls}">
+              <div class="ph-result-head">
                 <div>
                   <h3>Bed ${b.id}</h3>
-                  <p class="sub">pH ${fmtPh(b.ph)} - target share ${fmt(p.bedTargetKg,1)} kg - ${p.actualX}x${p.actualY} cm adjusted spacing</p>
+                  <strong class="ph-number">${fmtPh(b.ph)}</strong>
+                  <p class="sub" style="font-size:12px">pH result - ${p.actualX}x${p.actualY} cm adjusted spacing</p>
                 </div>
-                <span class="chip">${band(Math.min(p.quality,p.env)).label}</span>
+                <span class="chip ${phTone.cls}">${phTone.label}</span>
               </div>
               ${bedMetricsHTML(b, p, index)}
-              <p class="sub" style="font-size:13px">${planNote(p)}</p>
+              <div class="ph-reco">${phRecommendation(b)}</div>
             </div>`;
           }).join('')}
           <button class="btn" onclick="nav('companion')">Choose companion plants</button>
@@ -1351,16 +1672,16 @@
                   </div>
                   <p class="detail">${comp.note}</p>
                   <div class="detail-grid">
-                    <div class="tiny-box"><b>Database spacing</b>${comp.spacing[0]}x${comp.spacing[1]} cm - pH ${fmtRange(comp.ph)}</div>
-                    <div class="tiny-box"><b>Suggested layout</b>${placementLabel(recommended)} - ${comp.detail}</div>
+                    <div class="tiny-box pro"><b>Pros</b>${comp.detail}</div>
+                    <div class="tiny-box con"><b>Cons</b>${comp.caution}</div>
                   </div>
-                  <div class="tiny-box" style="margin-top:8px"><b>Care note</b>${comp.caution}</div>
+                  <div class="tiny-box" style="margin-top:8px"><b>Database fit</b>${comp.spacing[0]}x${comp.spacing[1]} cm - pH ${fmtRange(comp.ph)} - ${placementLabel(recommended)}</div>
                   ${selected ? `<div class="segmented" style="margin-top:10px">
                     <button class="segment mini ${placement==='edge'?'active':''}" onclick="setCompanionPlacement('${b.id}','edge')">Side rows</button>
                     <button class="segment mini ${placement==='perimeter'?'active':''}" onclick="setCompanionPlacement('${b.id}','perimeter')">Perimeter</button>
                     <button class="segment mini ${placement==='between'?'active':''}" onclick="setCompanionPlacement('${b.id}','between')">Between</button>
                   </div>` : ''}
-                  <button class="btn ${selected?'':'secondary'}" style="margin-top:12px" onclick="chooseCompanion('${b.id}','${id}')">${selected ? 'Selected' : 'Use for this bed'}</button>
+                  <button class="btn ${selected?'':'secondary'}" style="margin-top:12px" onclick="chooseCompanion('${b.id}','${id}')">${selected ? 'Added to plan' : 'Add to plan'}</button>
                 </div>`;
               }).join('')}
             </div>`;
@@ -1370,58 +1691,147 @@
       </section>`;
     }
 
+    function bedSummaryHTML(b) {
+      const p = calcBed(b);
+      const compId = selectedCompanion(b);
+      const comp = companionDb[compId];
+      const placement = selectedPlacement(b);
+      const status = band(Math.min(p.quality, p.env));
+      return `<div class="bed-summary">
+        <div class="bed-summary-head">
+          <div>
+            <h3>Bed ${b.id}</h3>
+            <p>${crop().common} with ${comp.common.toLowerCase()}</p>
+          </div>
+          <span class="chip ${status.cls}">${status.label}</span>
+        </div>
+        <div class="bed-summary-grid">
+          <div class="bed-stat"><b>${fmtPlain(b.width)}m x ${fmtPlain(b.length)}m</b><span>bed size</span></div>
+          <div class="bed-stat"><b>${p.count}</b><span>${crop().common.toLowerCase()} plants</span></div>
+          <div class="bed-stat"><b>${p.actualX}x${p.actualY} cm</b><span>recommended spacing</span></div>
+          <div class="bed-stat"><b>${placementLabel(placement)}</b><span>companion placement</span></div>
+        </div>
+      </div>`;
+    }
+
+    function bedMapTileHTML(b, index = 0) {
+      const p = calcBed(b);
+      const compId = selectedCompanion(b);
+      const comp = companionDb[compId];
+      const placement = selectedPlacement(b);
+      const [mainKind, mainColor] = cropShape(st.crop);
+      const [compKind, compColor] = companionShape(compId);
+      const g = bedGeometry(b, p);
+      const reservePerimeter = placement === 'perimeter' && p.rows > 4 && p.cols > 2;
+      const dots = [];
+      const mainEvery = Math.max(1, Math.ceil((g.xs.length * g.ys.length) / 42));
+      let i = 0;
+      g.ys.forEach((yCm, r) => {
+        g.xs.forEach((xCm, c) => {
+          if (reservePerimeter && (r === 0 || r === g.ys.length - 1 || c === 0 || c === g.xs.length - 1)) return;
+          if (i++ % mainEvery !== 0) return;
+          dots.push(`<span class="bed-mini-dot" style="left:${percentPos(xCm, g.widthCm)}%;top:${percentPos(yCm, g.lengthCm)}%">${shapeHTML(mainKind, mainColor, 8)}</span>`);
+        });
+      });
+      const compPts = companionPositions(b, p, comp, placement, g);
+      const compEvery = Math.max(1, Math.ceil(compPts.length / 18));
+      compPts.forEach((pt, idx) => {
+        if (idx % compEvery !== 0) return;
+        dots.push(`<span class="bed-mini-dot" style="left:${pt.x}%;top:${pt.y}%">${shapeHTML(compKind, compColor, 10)}</span>`);
+      });
+      const status = band(Math.min(p.quality, p.env));
+      return `<button class="bed-map-tile ${st.activeBed===b.id?'active':''}" onclick="openBedPopup('${b.id}')">
+        <div class="bed-map-top">
+          <strong>Bed ${b.id}</strong>
+          <span class="chip ${status.cls}">${status.label}</span>
+        </div>
+        <div class="bed-mini-map">${dots.join('')}</div>
+        <p class="sub" style="font-size:11px;margin-top:7px">${p.count} ${crop().common} - pH ${fmtPh(b.ph)}</p>
+      </button>`;
+    }
+
+    function fieldMapHTML() {
+      const [mainKind, mainColor] = cropShape(st.crop);
+      const selected = st.beds.find(b => b.id === st.activeBed) || st.beds[0];
+      const compId = selectedCompanion(selected);
+      const [compKind, compColor] = companionShape(compId);
+      const comp = companionDb[compId];
+      return `<div class="field-map">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+          <div>
+            <h2>Planting layout</h2>
+            <p class="sub" style="font-size:12px">Tap a bed to inspect its crop plan.</p>
+          </div>
+          <span class="chip">Bed map</span>
+        </div>
+        <div class="bed-map-grid">
+          ${st.beds.map(bedMapTileHTML).join('')}
+        </div>
+        <div class="legend">
+          <span class="chip">${shapeHTML(mainKind, mainColor, 10)} ${crop().common}</span>
+          <span class="chip">${shapeHTML(compKind, compColor, 10)} ${comp.common}</span>
+          <span class="chip">${st.beds.length} bedengan</span>
+        </div>
+      </div>`;
+    }
+
+    function bedPopupHTML() {
+      if (!st.mapPopupBed) return '';
+      const b = st.beds.find(x => x.id === st.mapPopupBed) || st.beds[0];
+      const p = calcBed(b);
+      return `<div class="modal-backdrop" onclick="closeBedPopup()">
+        <div class="bed-modal" onclick="event.stopPropagation()">
+          <div class="modal-head">
+            <div>
+              <h2>Bed ${b.id}</h2>
+              <p class="sub">Planting layout details</p>
+            </div>
+            <button class="icon-btn" onclick="closeBedPopup()" aria-label="Close bed details">×</button>
+          </div>
+          ${bedSummaryHTML(b)}
+          <div class="bed-metrics">
+            ${bedMetric(fmtPh(b.ph), 'soil pH', p.phScore, band(p.phScore).cls)}
+            ${bedMetric(`${fmtPh(b.moisture)}%`, 'moisture', p.moistureScore, band(p.moistureScore).cls)}
+            ${bedMetric(`${p.quality}%`, 'density', p.quality, band(p.quality).cls)}
+            ${bedMetric(`${p.env}%`, 'environment', p.env, band(p.env).cls)}
+          </div>
+          <button class="mini-action" onclick="viewBedDetails('${b.id}')">Open full specification</button>
+        </div>
+      </div>`;
+    }
+
     function layoutHTML(b) {
       const p = calcBed(b);
       const compId = selectedCompanion(b);
       const comp = companionDb[compId];
       const placement = selectedPlacement(b);
-      const padX = p.actualX / 2;
-      const padY = p.actualY / 2;
       const dots = [];
       const [mainKind, mainColor] = cropShape(st.crop);
       const [compKind, compColor] = companionShape(compId);
+      const g = bedGeometry(b, p);
       const reservePerimeter = placement === 'perimeter' && p.rows > 4 && p.cols > 2;
-      for (let r = 0; r < p.rows; r++) {
-        for (let c = 0; c < p.cols; c++) {
-          if (reservePerimeter && (r === 0 || r === p.rows - 1 || c === 0 || c === p.cols - 1)) continue;
-          const x = ((padX + c * p.actualX) / (b.width * 100)) * 100;
-          const y = ((padY + r * p.actualY) / (b.length * 100)) * 100;
+      g.ys.forEach((yCm, r) => {
+        g.xs.forEach((xCm, c) => {
+          if (reservePerimeter && (r === 0 || r === g.ys.length - 1 || c === 0 || c === g.xs.length - 1)) return;
+          const x = percentPos(xCm, g.widthCm);
+          const y = percentPos(yCm, g.lengthCm);
           dots.push(`<span class="plant-dot shape-dot" style="left:${x}%;top:${y}%" title="${crop().n}">${shapeHTML(mainKind, mainColor, 13)}</span>`);
-        }
-      }
+        });
+      });
       const addComp = (x, y) => dots.push(`<span class="plant-dot shape-dot" style="left:${x}%;top:${y}%" title="${comp.n}">${shapeHTML(compKind, compColor, compId === 'jagung_sela' ? 16 : 12)}</span>`);
-      const compEvery = Math.max(1, Math.floor(p.rows / 5));
-      if (placement === 'perimeter') {
-        const topEvery = Math.max(1, Math.floor(p.cols / 4));
-        for (let c = 0; c < p.cols; c += topEvery) {
-          const x = ((padX + c * p.actualX) / (b.width * 100)) * 100;
-          addComp(x, 3);
-          addComp(x, 97);
-        }
-        for (let r = 0; r < p.rows; r += compEvery) {
-          const y = ((padY + r * p.actualY) / (b.length * 100)) * 100;
-          addComp(3, y);
-          addComp(97, y);
-        }
-      } else if (placement === 'between') {
-        for (let r = 1; r < p.rows; r += 4) {
-          const x = 50;
-          const y = ((padY + r * p.actualY) / (b.length * 100)) * 100;
-          addComp(x, y);
-        }
-      } else {
-        for (let r = 0; r < p.rows; r += compEvery) {
-          const y = ((padY + r * p.actualY) / (b.length * 100)) * 100;
-          addComp(4, y);
-          addComp(96, y);
-        }
-      }
+      companionPositions(b, p, comp, placement, g).forEach(pt => addComp(pt.x, pt.y));
+      const yGuideStep = Math.max(1, Math.ceil(g.ys.length / 18));
+      const guideLines = [
+        ...g.xs.map(x => `<span class="layout-guide-line v" style="left:${percentPos(x, g.widthCm)}%"></span>`),
+        ...g.ys.filter((_, i) => i % yGuideStep === 0).map(y => `<span class="layout-guide-line h" style="top:${percentPos(y, g.lengthCm)}%"></span>`)
+      ].join('');
       const aspectH = clamp((b.length / b.width) * 260, 260, 620);
       const layoutW = Math.min(360, Math.max(230, b.width / b.length * aspectH));
       return `<div class="layout-wrap">
         <div class="scale-stage">
           <div class="scale-left"><span>0m</span><span>${fmtPlain(b.length)}m</span></div>
-          <div class="layout" style="--layout-w:${layoutW}px;--layout-h:${aspectH}px;--cell-x:${Math.max(6, p.actualX / (b.width * 100) * 100)}%;--cell-y:${Math.max(3, p.actualY / (b.length * 100) * 100)}%">
+          <div class="layout" style="--layout-w:${layoutW}px;--layout-h:${aspectH}px">
+            ${guideLines}
             ${dots.join('')}
           </div>
           <div class="scale-bottom"><span>0m</span><span>${fmtPlain(b.width)}m</span></div>
@@ -1463,13 +1873,7 @@
               </button>`;
             }).join('')}
           </div>
-          <div class="panel stack">
-            <div style="display:flex;justify-content:space-between;align-items:center">
-              <h2>Bed ${st.activeBed}</h2>
-              <span class="chip">real scale</span>
-            </div>
-            ${layoutHTML(st.beds.find(b => b.id === st.activeBed) || st.beds[0])}
-          </div>
+          ${fieldMapHTML()}
         </div>
       </section>`;
     }
@@ -1479,15 +1883,15 @@
         <div class="section stack">
           ${st.beds.map(b => {
             const p = calcBed(b);
+            const expanded = st.expandedBed === b.id;
             return `<div class="panel stack">
-              <div style="display:flex;justify-content:space-between;align-items:center"><h2>Bed ${b.id}</h2><span class="chip">${fmtPlain(b.width)}m x ${fmtPlain(b.length)}m</span></div>
-              <div class="metric-row">
+              ${bedSummaryHTML(b)}
+              <button class="mini-action" onclick="toggleBedExpanded('${b.id}')">${expanded ? 'Collapse full specification' : 'Open full specification'}</button>
+              ${expanded ? `<div class="metric-row">
                 <div class="metric"><strong>${p.count}</strong><span>main plants</span></div>
                 <div class="metric ${band(p.quality).cls}"><strong>${p.quality}%</strong><span>density</span></div>
                 <div class="metric ${band(p.env).cls}"><strong>${p.env}%</strong><span>environment</span></div>
-              </div>
-              ${spacingGuideHTML(b)}
-              ${layoutHTML(b)}
+              </div>${spacingGuideHTML(b)}${layoutHTML(b)}` : ''}
             </div>`;
           }).join('')}
         </div>
@@ -1530,6 +1934,7 @@
         const tabs = {dashboard:T_dashboard, beds:T_beds, sensor:T_sensor, settings:T_settings};
         scr.innerHTML = (tabs[st.tab] || T_dashboard)();
       }
+      if (st.screen === 'main' && st.mapPopupBed) scr.innerHTML += bedPopupHTML();
       if (resetScroll) scr.scrollTop = 0;
       const now = new Date();
       document.getElementById('clock').textContent = `${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
