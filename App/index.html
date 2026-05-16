@@ -876,6 +876,95 @@
     .ob-num   { width:28px; height:28px; background:var(--leaf); color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:900; flex-shrink:0; margin-top:1px; }
     .ob-text strong { display:block; font-size:13px; color:var(--ink); font-weight:800; }
     .ob-text span   { display:block; font-size:11.5px; color:var(--muted); margin-top:3px; line-height:1.4; }
+    /* ── Field plots (S_field visual) ── */
+    .fplots-wrap { display:flex; gap:10px; flex-wrap:wrap; }
+    .fplot {
+      flex:0 0 calc(50% - 5px); border:2px solid var(--line); border-radius:14px;
+      overflow:hidden; cursor:pointer; transition:border-color .15s,box-shadow .15s;
+      background:var(--paper);
+    }
+    .fplot:hover { border-color:var(--leaf); }
+    .fplot-active { border-color:var(--leaf); box-shadow:0 0 0 3px rgba(13,107,80,.1); }
+    .fplot-soil {
+      background:linear-gradient(180deg,#5a3010 0%,#3c1e07 100%);
+      height:72px; display:flex; align-items:flex-end; justify-content:center;
+      gap:6px; padding:8px 10px; position:relative;
+    }
+    .fplot-soil::before {
+      content:''; position:absolute; inset:0;
+      background:linear-gradient(90deg,rgba(13,107,80,.08) 1px,transparent 1px),linear-gradient(rgba(13,107,80,.06) 1px,transparent 1px);
+      background-size:12px 12px;
+    }
+    .fplot-bedstrip {
+      background:#7a9e4a; border-radius:3px 3px 0 0;
+      height:52px; min-width:14px; position:relative; z-index:1;
+      border:1px solid rgba(255,255,255,.15);
+    }
+    .fplot-footer { display:flex; align-items:center; gap:8px; padding:8px 10px; }
+    .fplot-emoji { font-size:18px; flex-shrink:0; }
+    .fplot-name { font-size:12px; font-weight:800; color:var(--ink); line-height:1.2; }
+    .fplot-sub  { font-size:10px; color:var(--muted); margin-top:1px; }
+    .fplot-add {
+      background:var(--mist); border-style:dashed;
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      min-height:120px; gap:2px;
+    }
+    .fplot-plus { font-size:28px; color:var(--leaf); font-weight:300; line-height:1; }
+    .fplot-add .fplot-name { color:var(--leaf-2); }
+    /* ── Scan popup ── */
+    .scan-popup-overlay {
+      position:fixed; inset:0; background:rgba(5,18,10,.55);
+      display:flex; align-items:flex-end; justify-content:center;
+      z-index:500; padding:0 0 24px;
+      backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px);
+      animation:fadeUp .22s ease;
+    }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+    .scan-popup {
+      background:var(--paper); border-radius:20px 20px 16px 16px;
+      padding:22px 20px 18px; width:calc(100% - 32px); max-width:400px;
+      box-shadow:0 -4px 32px rgba(0,0,0,.18); text-align:center;
+    }
+    .scan-popup-icon { font-size:40px; margin-bottom:8px; }
+    .scan-popup h3 { font-size:20px; letter-spacing:-.4px; margin-bottom:14px; }
+    .scan-result-row { display:flex; gap:10px; justify-content:center; margin-bottom:16px; }
+    .scan-result-chip {
+      flex:1; max-width:120px; border-radius:10px; padding:10px 8px;
+      border:1px solid var(--line);
+      font-size:18px; font-weight:900; line-height:1;
+    }
+    .scan-result-chip span { display:block; font-size:10px; font-weight:700; margin-top:4px; opacity:.75; }
+    /* ── Field overview ── */
+    .field-ov-wrap { border:1.5px solid var(--line); border-radius:14px; overflow:hidden; }
+    .field-ov-label {
+      background:var(--leaf-2); color:#fff;
+      font-size:11px; font-weight:800; letter-spacing:.5px;
+      padding:7px 14px;
+    }
+    .field-ov-container {
+      background:linear-gradient(135deg,#3a1e08,#5a3010);
+      min-height:140px; display:flex; flex-wrap:wrap;
+      gap:10px; padding:16px; align-items:flex-start;
+    }
+    .field-ov-bed {
+      position:relative; border-radius:8px; min-width:80px;
+      border:2px solid rgba(255,255,255,.25); cursor:default;
+    }
+    .field-ov-bed.band-white  { background:rgba(13,107,80,.72);  border-color:rgba(159,225,203,.5); }
+    .field-ov-bed.band-yellow { background:rgba(180,140,20,.72); border-color:rgba(234,214,128,.5); }
+    .field-ov-bed.band-orange { background:rgba(180,90,20,.72);  border-color:rgba(229,170,112,.5); }
+    .field-ov-bed.band-red    { background:rgba(160,40,40,.72);  border-color:rgba(227,160,160,.5); }
+    .field-ov-bed-inner {
+      position:absolute; inset:0; display:flex; flex-direction:column;
+      align-items:center; justify-content:center; gap:2px; padding:6px;
+    }
+    .field-ov-bed-inner strong { font-size:11px; color:#fff; font-weight:900; }
+    .field-ov-bed-inner span  { font-size:9px;  color:rgba(255,255,255,.8); }
+    .field-ov-dot { width:12px; height:12px; border-radius:3px; flex-shrink:0; }
+    .field-ov-dot.band-white  { background:var(--leaf); }
+    .field-ov-dot.band-yellow { background:#d9a51e; }
+    .field-ov-dot.band-orange { background:#c07030; }
+    .field-ov-dot.band-red    { background:#c03030; }
     /* Tutorial SVG animations (reusable for both modal & inline) */
     @keyframes insertSoil2 {
       0%,12%  { transform:translateY(0);    }
@@ -959,17 +1048,6 @@
           {id:'A2', name:'South Bed', length:7, width:1.2, ph:5.6, moisture:42, lat:-6.2003, lng:106.8173}
         ]
       },
-      {
-        name:'Soybean Demo',
-        crop:'kedelai',
-        target:7.2,
-        layoutMode:'perimeter',
-        chosen:{A1:'jagung_sela'},
-        placements:{A1:'perimeter'},
-        beds:[
-          {id:'A1', name:'Main Bed', length:7.5, width:1.6, ph:6.2, moisture:52, lat:-6.2012, lng:106.8184}
-        ]
-      }
     ];
     const st = {
       screen:'login',
@@ -1465,20 +1543,47 @@
 
     let scanTimer = null;
     function nav(screen) {
-      if (scanTimer) { clearInterval(scanTimer); scanTimer = null; }
+      if (scanTimer) { clearTimeout(scanTimer); clearInterval(scanTimer); scanTimer = null; }
       st.screen = screen;
       if (screen === 'scan') {
-        st.scanned = 0;
+        st.currentScanBed = st.currentScanBed ?? 0;
+        st.scanPopup = false;
+        st.scanning = true;
         render();
-        scanTimer = setInterval(() => {
-          st.scanned += 1;
+        scanTimer = setTimeout(() => {
+          st.scanning = false;
+          st.scanPopup = true;
+          st.scanned = st.currentScanBed + 1;
           render(false);
-          if (st.scanned >= st.beds.length) { clearInterval(scanTimer); scanTimer = null; }
-        }, 650);
+        }, 2400);
         return;
       }
       if (screen === 'main') st.tab = 'dashboard';
       render();
+    }
+    function nextScanBed() {
+      st.scanPopup = false;
+      if (st.currentScanBed < st.beds.length - 1) {
+        st.currentScanBed++;
+        st.scanning = true;
+        st.screen = 'scan';
+        render();
+        scanTimer = setTimeout(() => {
+          st.scanning = false;
+          st.scanPopup = true;
+          st.scanned = st.currentScanBed + 1;
+          render(false);
+        }, 2400);
+      } else {
+        st.currentScanBed = 0;
+        nav('fieldoverview');
+      }
+    }
+    function startScan() {
+      st.currentScanBed = 0;
+      st.scanned = 0;
+      st.scanPopup = false;
+      nav('scan');
     }
     function showMain(tab) { st.screen = 'main'; st.tab = tab; render(); }
 
@@ -1496,17 +1601,39 @@
     }
 
     function S_field() {
+      const MAIN_CROPS = ['cabai','jagung','singkong','tomat'];
       return `<section>
         <div class="top">
           ${stepBar(1, 4)}
           <h1>Create your field</h1>
-          <p class="sub">Give your field a name to get started. You can manage multiple fields later.</p>
+          <p class="sub">Name your field and see it here as a plot. Add more fields anytime.</p>
         </div>
         <div class="section stack">
-          <div class="field-hero">
-            <div class="field-hero-icon">🌾</div>
-            <div class="field-hero-hint">NEW FIELD</div>
+          <!-- Field plots visual -->
+          <div class="fplots-wrap">
+            ${st.fields.map((f,i)=>{
+              const c = crops.find(x=>x.id===f.crop)||crops[0];
+              const active = i===st.activeField;
+              const bedW = Math.min(100/Math.max(f.beds.length,1)-4, 28);
+              return `<div class="fplot ${active?'fplot-active':''}" onclick="loadField(${i})">
+                <div class="fplot-soil">
+                  ${f.beds.map(()=>`<div class="fplot-bedstrip" style="width:${bedW}%"></div>`).join('')}
+                </div>
+                <div class="fplot-footer">
+                  <span class="fplot-emoji">${c.visual}</span>
+                  <div>
+                    <div class="fplot-name">${f.name}</div>
+                    <div class="fplot-sub">${f.beds.length} bed${f.beds.length!==1?'s':''} · ${c.common}</div>
+                  </div>
+                </div>
+              </div>`;
+            }).join('')}
+            <div class="fplot fplot-add" onclick="createField()">
+              <div class="fplot-plus">+</div>
+              <div class="fplot-name" style="margin-top:6px">New field</div>
+            </div>
           </div>
+          <!-- Active field name -->
           <div class="field">
             <label>Field name</label>
             <input class="input" style="font-size:16px;padding:13px 14px" value="${st.fieldName}"
@@ -1514,57 +1641,67 @@
               oninput="setField('fieldName',this.value)"
               onchange="setField('fieldName',this.value)">
           </div>
-          ${st.fields.length > 1 ? `<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">${st.fields.map((f,i)=>`<button class="chip ${i===st.activeField?'band-white':''}" onclick="loadField(${i})" style="cursor:pointer">${f.name}</button>`).join('')}<button class="chip" onclick="createField()" style="cursor:pointer">+ New field</button></div>` : ''}
           <button class="btn" onclick="nav('beds')">Next: Set up your bed →</button>
-          <div class="demo-strip">
-            <div style="display:flex;justify-content:space-between;gap:12px;align-items:center">
-              <div>
-                <strong>Try demo mode</strong>
-                <p>Soybean field with corn companion — perimeter placement to protect centre sunlight.</p>
-              </div>
-              <button class="btn" style="width:auto;min-height:40px;background:#9fe1cb;border-color:#9fe1cb;color:var(--leaf-2)" onclick="startDemo()">Use demo</button>
-            </div>
-          </div>
         </div>
       </section>`;
     }
 
+    const MAIN_CROP_IDS = ['cabai','jagung','singkong','tomat'];
+    function plantCount() { return Math.max(1, Math.round(st.target / crop().yield)); }
+    function setPlants(n) { st.target = clamp(num(n,1),1,99999) * crop().yield; saveField(); render(); }
     function S_beds() {
       const i = st.setupBed;
       const b = st.beds[i];
       const p = calcBed(b);
-      const list = crops.filter(c => `${c.n} ${c.common} ${c.scientific}`.toLowerCase().includes(st.q.toLowerCase()));
+      const mainCrops = crops.filter(c=>MAIN_CROP_IDS.includes(c.id));
+      const c = crop();
+      const plants = plantCount();
+      const yieldPerHarvest = fmt(plants * c.yield, 0);
+      const harvestNote = c.id==='cabai' ? 'Chili is harvested ~10× over 6 months — season total is much higher.'
+        : c.id==='jagung' ? 'Corn is harvested once per cycle (~3 months).'
+        : c.id==='singkong' ? 'Cassava is harvested once after 8–12 months.'
+        : 'Tomato is harvested multiple times over ~4 months.';
       return `<section>
         <div class="top">
           ${stepBar(2, 4)}
           <h1>Set up your bed</h1>
-          <p class="sub">Choose your main crop, name each raised bed, and enter its dimensions.</p>
+          <p class="sub">Choose your main crop, name each raised bed, and set dimensions.</p>
         </div>
         <div class="section stack">
-          <!-- Main crop -->
+          <!-- Main crop: 4 options -->
           <div class="panel stack">
             <h3 style="font-size:15px">Main crop</h3>
-            <input class="input" placeholder="Search crop…" value="${st.q}" oninput="st.q=this.value;render(false)">
             <div class="grid2">
-              ${list.slice(0,8).map(c=>`<button class="crop-card ${c.id===st.crop?'selected':''}" onclick="setCrop('${c.id}')">
-                <span class="crop-visual">${c.visual}</span>
-                <h3>${c.common}</h3>
-                <p>pH ${fmtRange(c.ph)}</p>
+              ${mainCrops.map(mc=>`<button class="crop-card ${mc.id===st.crop?'selected':''}" onclick="setCrop('${mc.id}')">
+                <span class="crop-visual">${mc.visual}</span>
+                <h3>${mc.common}</h3>
+                <p>pH ${fmtRange(mc.ph)}</p>
               </button>`).join('')}
             </div>
             <div class="panel soft" style="padding:10px 12px">
-              <span class="chip">${crop().visual} ${crop().common}</span>
-              <p class="sub" style="font-size:12px;margin-top:6px">${crop().special}. Spacing: ${crop().spacing[0]}×${crop().spacing[1]} cm</p>
+              <span class="chip">${c.visual} ${c.common}</span>
+              <p class="sub" style="font-size:12px;margin-top:6px">${c.special}. Spacing: ${c.spacing[0]}×${c.spacing[1]} cm</p>
             </div>
-            <div class="field" style="gap:6px">
-              <label>Harvest target (kg)</label>
-              <input class="input" inputmode="decimal" type="number" value="${fmtPlain(st.target)}" onchange="setField('target',this.value)" onkeydown="if(event.key==='Enter')this.blur()">
+            <!-- Plant count input (farmer-friendly) -->
+            <div style="background:var(--mint);border:1px solid var(--line);border-radius:10px;padding:12px 14px">
+              <div class="field" style="gap:6px">
+                <label style="color:var(--leaf-2)">How many plants to grow?</label>
+                <div class="num-control">
+                  <button class="stepper" onclick="setPlants(${plants}-10)">−</button>
+                  <input class="input" inputmode="numeric" type="number" value="${plants}"
+                    onchange="setPlants(this.value)" onkeydown="if(event.key==='Enter')this.blur()">
+                  <button class="stepper" onclick="setPlants(${plants}+10)">+</button>
+                </div>
+              </div>
+              <p class="sub" style="font-size:12px;margin-top:8px">
+                → ~<strong>${yieldPerHarvest} kg</strong> per harvest · ${harvestNote}
+              </p>
             </div>
           </div>
           <!-- Bed tabs -->
           <div class="bed-tabs">
             ${st.beds.map((bed,idx)=>`<button class="bed-tab ${idx===i?'active':''}" onclick="setBed(${idx})">${bed.name||bed.id}</button>`).join('')}
-            <button class="bed-tab" onclick="addBed()">+ Add</button>
+            <button class="bed-tab" onclick="addBed()">+ Add bed</button>
           </div>
           <!-- Bed editor -->
           <div class="panel stack">
@@ -1583,7 +1720,7 @@
             </div>
             <div class="panel ${band(p.quality).cls}" style="padding:12px">
               <strong>${farmerDensityText(p)}</strong>
-              <p class="sub" style="font-size:13px;margin-top:4px">${p.count} ${crop().common} plants at ${p.actualX}×${p.actualY} cm — ${fmt(bedArea(b),1)} m²</p>
+              <p class="sub" style="font-size:13px;margin-top:4px">${p.count} ${c.common} plants at ${p.actualX}×${p.actualY} cm — ${fmt(bedArea(b),1)} m²</p>
             </div>
           </div>
           <button class="btn" onclick="nav('tutorial')">Next: How to scan →</button>
@@ -1669,37 +1806,115 @@
               </div>
             </div>
           </div>
-          <button class="btn" onclick="nav('scan')">Start scanning beds →</button>
+          <button class="btn" onclick="startScan()">Start scanning beds →</button>
         </div>
       </section>`;
     }
     function S_scan() {
-      const pct = Math.round((st.scanned / st.beds.length) * 100);
+      const idx = st.currentScanBed ?? 0;
+      const b = st.beds[idx];
+      const done = !st.scanning && st.scanPopup;
+      const phTone = phBandForBed(b);
+      const progressPct = Math.round(((idx + (done?1:0)) / st.beds.length) * 100);
       return `<section>
         <div class="top">
           <div style="margin-bottom:16px">${stepBar(4,4)}</div>
           <h1>Scan raised beds</h1>
-          <p class="sub">Insert the POLI probe into each bed and press the red button. pH and moisture readings will refine your layout.</p>
+          <p class="sub">Insert the POLI probe into bed <strong>${b.name||b.id}</strong> and press the red button.</p>
         </div>
         <div class="section stack">
-          <div class="scan-ring" style="--scan:${pct}%"><span>🌱</span></div>
+          <!-- Progress bar across beds -->
           <div>
-            <div style="display:flex;justify-content:space-between;margin-bottom:7px;font-size:13px;font-weight:800;color:var(--leaf-2)">
-              <span>Scan progress</span><span>${st.scanned}/${st.beds.length}</span>
+            <div style="display:flex;justify-content:space-between;margin-bottom:7px;font-size:12px;font-weight:800;color:var(--leaf-2)">
+              <span>Bed ${idx+1} of ${st.beds.length}</span>
+              <span>${st.scanned} scanned</span>
             </div>
-            <div class="progress" style="--w:${pct}%"><span></span></div>
+            <div class="progress" style="--w:${progressPct}%"><span></span></div>
           </div>
-          ${st.beds.map((b, idx) => {
-            const done = idx < st.scanned;
-            return `<div class="panel scan-card ${done?'detected':''}">
-              <div>
-                <strong>Bed ${b.id}</strong>
-                <p class="scan-ph ${done?'':'waiting'}">${done ? `pH ${fmtPh(b.ph)}` : 'pH Waiting...'}</p>
-              </div>
-              <span class="chip ${done?'band-white':''}">${done ? '✓ Detected' : 'Waiting...'}</span>
-            </div>`;
-          }).join('')}
-          <button class="btn" ${st.scanned < st.beds.length ? 'disabled' : ''} onclick="nav('soil')">${st.scanned < st.beds.length ? 'Scanning...' : 'View soil result'}</button>
+          <!-- Bed strip list -->
+          <div style="display:grid;gap:8px">
+            ${st.beds.map((bed,bedIdx)=>{
+              const scanned = bedIdx < st.scanned;
+              const active = bedIdx === idx;
+              return `<div class="panel scan-card ${scanned?'detected':''}" style="${active?'border-color:var(--leaf);box-shadow:0 0 0 2px rgba(13,107,80,.12)':''}">
+                <div>
+                  <strong>${bed.name||bed.id}</strong>
+                  <p class="scan-ph ${scanned?'':'waiting'}">${scanned ? `pH ${fmtPh(bed.ph)} · ${bed.moisture}% moisture` : active?'⟳ Scanning…':'Waiting'}</p>
+                </div>
+                <span class="chip ${scanned?'band-white':active?'band-yellow':''}">${scanned?'✓ Done':active?'Active':'—'}</span>
+              </div>`;
+            }).join('')}
+          </div>
+          <!-- Scanning animation ring (current bed) -->
+          <div class="scan-ring" style="--scan:${st.scanning?'15':'100'}%;transition:--scan .4s">
+            <span>${st.scanning?'…':'✓'}</span>
+          </div>
+          ${st.scanning ? `<p style="text-align:center;font-size:13px;color:var(--muted);font-weight:700">Reading soil data…</p>` : ''}
+        </div>
+        <!-- Success popup overlay -->
+        ${done ? `<div class="scan-popup-overlay" onclick="">
+          <div class="scan-popup">
+            <div class="scan-popup-icon">✅</div>
+            <h3>${b.name||b.id} scanned!</h3>
+            <div class="scan-result-row">
+              <div class="scan-result-chip ${phBandForBed(b).cls}">pH ${fmtPh(b.ph)}<span>${phBandForBed(b).label}</span></div>
+              <div class="scan-result-chip band-white">${b.moisture}%<span>Moisture</span></div>
+            </div>
+            <button class="btn" onclick="nextScanBed()" style="margin-top:4px">
+              ${idx < st.beds.length-1 ? `Next bed: ${st.beds[idx+1].name||st.beds[idx+1].id} →` : 'View field overview →'}
+            </button>
+          </div>
+        </div>` : ''}
+      </section>`;
+    }
+
+    function S_fieldoverview() {
+      const maxLen = Math.max(...st.beds.map(b=>b.length));
+      const maxWid = Math.max(...st.beds.map(b=>b.width));
+      return `<section>
+        <div class="top">
+          <h1>${st.fieldName}</h1>
+          <p class="sub">All ${st.beds.length} bed${st.beds.length!==1?'s':''} scanned. Here's your field overview.</p>
+        </div>
+        <div class="section stack">
+          <!-- Field overview visual -->
+          <div class="field-ov-wrap">
+            <div class="field-ov-label">📍 ${st.fieldName}</div>
+            <div class="field-ov-container">
+              ${st.beds.map((b,i)=>{
+                const phTone = phBandForBed(b);
+                const w = Math.round((b.width/Math.max(maxWid*1.4,b.width+0.5))*100);
+                const h = Math.round((b.length/Math.max(maxLen*1.2,b.length+1))*100);
+                return `<div class="field-ov-bed ${phTone.cls}" style="width:${w}%;padding-top:${h*0.45}%">
+                  <div class="field-ov-bed-inner">
+                    <strong>${b.name||b.id}</strong>
+                    <span>pH ${fmtPh(b.ph)}</span>
+                    <span>${b.length}×${b.width}m</span>
+                  </div>
+                </div>`;
+              }).join('')}
+            </div>
+          </div>
+          <!-- Bed summary list -->
+          <div style="display:grid;gap:8px">
+            ${st.beds.map(b=>{
+              const phTone = phBandForBed(b);
+              const p = calcBed(b);
+              return `<div class="panel" style="display:flex;align-items:center;gap:12px;padding:12px 14px">
+                <div class="field-ov-dot ${phTone.cls}"></div>
+                <div style="flex:1">
+                  <strong style="font-size:14px">${b.name||b.id}</strong>
+                  <p class="sub" style="font-size:12px;margin-top:2px">${b.length}m × ${b.width}m · ${p.count} plants</p>
+                </div>
+                <div style="text-align:right">
+                  <div style="font-size:13px;font-weight:800;color:var(--ink)">pH ${fmtPh(b.ph)}</div>
+                  <div class="chip ${phTone.cls}" style="font-size:10px;margin-top:3px">${phTone.label}</div>
+                </div>
+              </div>`;
+            }).join('')}
+          </div>
+          <button class="btn" onclick="nav('soil')">View soil recommendations →</button>
+          <button class="btn secondary" onclick="nav('scan');st.currentScanBed=0;st.scanned=0;">Re-scan all beds</button>
         </div>
       </section>`;
     }
@@ -2015,7 +2230,7 @@
       const navEl = document.getElementById('bottom-nav');
       navEl.classList.toggle('show', st.screen === 'main');
       document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.tab === st.tab || (btn.dataset.tab === 'dashboard' && st.tab === 'bed')));
-      const screens = {login:S_login, field:S_field, beds:S_beds, tutorial:S_tutorial, scan:S_scan, soil:S_soil, companion:S_companion};
+      const screens = {login:S_login, field:S_field, beds:S_beds, tutorial:S_tutorial, scan:S_scan, fieldoverview:S_fieldoverview, soil:S_soil, companion:S_companion};
       if (screens[st.screen]) scr.innerHTML = screens[st.screen]();
       else {
         const tabs = {dashboard:T_dashboard, beds:T_beds, sensor:T_sensor, settings:T_settings};
